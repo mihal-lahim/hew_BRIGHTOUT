@@ -19,284 +19,284 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\main.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\direct3d.cpp">
+    <ClCompile Include="direct3d.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\debug_ostream.cpp">
+    <ClCompile Include="debug_ostream.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\polygon.cpp">
+    <ClCompile Include="polygon.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\shader.cpp">
+    <ClCompile Include="shader.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\sprite.cpp">
+    <ClCompile Include="sprite.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\sprite_anim.cpp">
+    <ClCompile Include="sprite_anim.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\system_timer.cpp">
+    <ClCompile Include="system_timer.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\debug_text.cpp">
+    <ClCompile Include="debug_text.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\WICTextureLoader11.cpp">
+    <ClCompile Include="WICTextureLoader11.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\texture.cpp">
+    <ClCompile Include="texture.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\keyboard.cpp">
+    <ClCompile Include="keyboard.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\mouse.cpp">
+    <ClCompile Include="mouse.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\key_logger.cpp">
+    <ClCompile Include="key_logger.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\game.cpp">
+    <ClCompile Include="game.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Audio.cpp">
+    <ClCompile Include="Audio.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\game_score.cpp">
+    <ClCompile Include="game_score.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\fade.cpp">
+    <ClCompile Include="fade.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\title.cpp">
+    <ClCompile Include="title.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene.cpp">
+    <ClCompile Include="scene.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\game_effect.cpp">
+    <ClCompile Include="game_effect.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\result.cpp">
+    <ClCompile Include="result.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\cube.cpp">
+    <ClCompile Include="cube.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\shader3d.cpp">
+    <ClCompile Include="shader3d.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\grid.cpp">
+    <ClCompile Include="grid.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\debug_camera.cpp">
+    <ClCompile Include="debug_camera.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\map.cpp">
+    <ClCompile Include="map.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\light.cpp">
+    <ClCompile Include="light.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\model.cpp">
+    <ClCompile Include="model.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\collision.cpp">
+    <ClCompile Include="collision.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\controller.cpp">
+    <ClCompile Include="controller.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\player.cpp">
+    <ClCompile Include="player.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\camera_manager.cpp">
+    <ClCompile Include="camera_manager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\top_down_camera.cpp">
+    <ClCompile Include="top_down_camera.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\UI_Charge.cpp">
+    <ClCompile Include="UI_Charge.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\GameObject.cpp">
+    <ClCompile Include="GameObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\ObjectManager.cpp">
+    <ClCompile Include="ObjectManager.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\item.cpp">
+    <ClCompile Include="item.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\ItemGenerator.cpp">
+    <ClCompile Include="ItemGenerator.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\PowerLine.cpp">
+    <ClCompile Include="PowerLine.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\Pole.cpp">
+    <ClCompile Include="Pole.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\ItemGeneratorObject.cpp">
+    <ClCompile Include="ItemGeneratorObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="src\DebugAABB.cpp">
+    <ClCompile Include="DebugAABB.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\direct3d.h">
+    <ClInclude Include="direct3d.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\debug_ostream.h">
+    <ClInclude Include="debug_ostream.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\polygon.h">
+    <ClInclude Include="polygon.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\shader.h">
+    <ClInclude Include="shader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\texture.h">
+    <ClInclude Include="texture.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\sprite.h">
+    <ClInclude Include="sprite.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\sprite_anim.h">
+    <ClInclude Include="sprite_anim.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\system_timer.h">
+    <ClInclude Include="system_timer.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\debug_text.h">
+    <ClInclude Include="debug_text.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\WICTextureLoader11.h">
+    <ClInclude Include="WICTextureLoader11.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\keyboard.h">
+    <ClInclude Include="keyboard.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\mouse.h">
+    <ClInclude Include="mouse.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\key_logger.h">
+    <ClInclude Include="key_logger.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\game.h">
+    <ClInclude Include="game.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\Audio.h">
+    <ClInclude Include="Audio.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\game_score.h">
+    <ClInclude Include="game_score.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\fade.h">
+    <ClInclude Include="fade.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\title.h">
+    <ClInclude Include="title.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\scene.h">
+    <ClInclude Include="scene.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\game_effect.h">
+    <ClInclude Include="game_effect.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\result.h">
+    <ClInclude Include="result.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\cube.h">
+    <ClInclude Include="cube.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\shader3d.h">
+    <ClInclude Include="shader3d.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\grid.h">
+    <ClInclude Include="grid.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\camera.h">
+    <ClInclude Include="camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\debug_camera.h">
+    <ClInclude Include="debug_camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\map.h">
+    <ClInclude Include="map.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\light.h">
+    <ClInclude Include="light.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\model.h">
+    <ClInclude Include="model.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\collision.h">
+    <ClInclude Include="collision.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\controller\cont_12\controller.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\controller.h">
+    <ClInclude Include="controller.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\player.h">
+    <ClInclude Include="player.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\camera_manager.h">
+    <ClInclude Include="camera_manager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\top_down_camera.h">
+    <ClInclude Include="top_down_camera.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\UI_Charge.h">
+    <ClInclude Include="UI_Charge.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\UI.h">
+    <ClInclude Include="UI.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\GameObject.h">
+    <ClInclude Include="GameObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\ObjectManager.h">
+    <ClInclude Include="ObjectManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\item.h">
+    <ClInclude Include="item.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\ItemGenerator.h">
+    <ClInclude Include="ItemGenerator.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\PowerLine.h">
+    <ClInclude Include="PowerLine.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\Pole.h">
+    <ClInclude Include="Pole.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\ItemGeneratorObject.h">
+    <ClInclude Include="ItemGeneratorObject.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="include\DebugAABB.h">
+    <ClInclude Include="DebugAABB.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shader\VertexShader2d.hlsl">
+    <FxCompile Include="VertexShader2d.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader\PixelShader2d.hlsl">
+    <FxCompile Include="PixelShader2d.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader\VertexShader3d.hlsl">
+    <FxCompile Include="VertexShader3d.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
-    <FxCompile Include="shader\PixelShader3d.hlsl">
+    <FxCompile Include="PixelShader3d.hlsl">
       <Filter>シェーダーファイル</Filter>
     </FxCompile>
   </ItemGroup>
