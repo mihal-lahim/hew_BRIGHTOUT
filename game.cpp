@@ -24,7 +24,12 @@
 #include "UI_Charge.h"
 #include "cube.h"
 #include "debug_text.h"
-#include "ObjectManager.h" // 追加
+#include "ObjectManager.h"
+#include "ItemGenerator.h"
+#include "PowerLine.h"
+#include "Pole.h"
+#include "ItemGeneratorObject.h"
+#include "DebugAABB.h"
 #include <array>
 #include <string>
 #include <cstdio>
@@ -53,6 +58,9 @@ static UI_Charge* g_uiCharge = nullptr;
 // プレイヤーの体力表示用 DebugText
 static hal::DebugText* g_debugText = nullptr;
 
+// アイテムジェネレーター
+static ItemGenerator* g_itemGenerator = nullptr;
+
 void Game_SetPlayerCount(int count)
 {
 	if (count < 1) count = 1;
@@ -70,13 +78,98 @@ void Game_Initialize()
 
 	Grid_Initialize(10,10,1.0f);
 	g_MapInstance.Initialize();
-	g_ObjectManager.Initialize(); // 追加
+	g_ObjectManager.Initialize();
 	Light_Initialize();
 	Fade_Start(1.0f, true);
 
+	// デバッグAABB描画の初期化
+	DebugAABB::Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
 	g_pKirby = ModelLoad("model/kirby.fbx",0.1f, false);
 	g_test = ModelLoad("model/test.fbx",0.1f, false);
 	g_ball = ModelLoad("model/ball.fbx",0.1f, false);
+
+	// 電柱を ObjectManager に追加し、IDを設定
+	int poleID = 0;
+	
+	auto pole1 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(-10.0f, 0.0f, 0.0f),
+		4.0f, 0.2f
+	);
+	pole1->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole1));
+
+	auto pole2 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(10.0f, 0.0f, 0.0f),
+		4.0f, 0.2f
+	);
+	pole2->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole2));
+
+	auto pole3 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f),
+		4.0f, 0.2f
+	);
+	pole3->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole3));
+
+	auto pole4 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(0.0f, 0.0f, 10.0f),
+		4.0f, 0.2f
+	);
+	pole4->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole4));
+
+	auto pole5 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(-10.0f, 0.0f, 10.0f),
+		4.0f, 0.2f
+	);
+	pole5->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole5));
+
+	auto pole6 = std::make_unique<Pole>(
+		DirectX::XMFLOAT3(10.0f, 0.0f, 10.0f),
+		4.0f, 0.2f
+	);
+	pole6->SetPoleID(poleID++);
+	g_ObjectManager.AddGameObject(std::move(pole6));
+
+	// 電柱同士を電線で自動接続
+	g_ObjectManager.ConnectNearbyPoles();
+
+	// アイテムジェネレータオブジェクトをフィールドに配置
+	int generatorID = 0;
+	
+	auto generator1 = std::make_unique<ItemGeneratorObject>(
+		DirectX::XMFLOAT3(-8.0f, 1.0f, -8.0f),
+		5.0f,   // スポーン範囲
+		2.0f    // スポーン間隔
+	);
+	generator1->SetGeneratorID(generatorID++);
+	g_ObjectManager.AddGameObject(std::move(generator1));
+
+	auto generator2 = std::make_unique<ItemGeneratorObject>(
+		DirectX::XMFLOAT3(8.0f, 1.0f, -8.0f),
+		5.0f,
+		2.0f
+	);
+	generator2->SetGeneratorID(generatorID++);
+	g_ObjectManager.AddGameObject(std::move(generator2));
+
+	auto generator3 = std::make_unique<ItemGeneratorObject>(
+		DirectX::XMFLOAT3(-8.0f, 1.0f, 8.0f),
+		5.0f,
+		2.0f
+	);
+	generator3->SetGeneratorID(generatorID++);
+	g_ObjectManager.AddGameObject(std::move(generator3));
+
+	auto generator4 = std::make_unique<ItemGeneratorObject>(
+		DirectX::XMFLOAT3(8.0f, 1.0f, 8.0f),
+		5.0f,
+		2.0f
+	);
+	generator4->SetGeneratorID(generatorID++);
+	g_ObjectManager.AddGameObject(std::move(generator4));
 
 	// コントローラーを動的確保し、各スロットごとにコンストラクタで初期化
 	for (int i =0; i <3; ++i) {
@@ -127,6 +220,11 @@ void Game_Initialize()
 
 	// UI 用のグローバルプレイヤーポインタを設定
 	g_player = g_players[0];
+
+	// アイテムジェネレーターの初期化
+	g_itemGenerator = new ItemGenerator();
+	g_itemGenerator->Initialize();
+	g_itemGenerator->GenerateItemsOnPowerLines(g_MapInstance);
 }
 
 void Game_Finalize()
@@ -136,12 +234,21 @@ void Game_Finalize()
 	Light_Finalize();
 	Grid_Finalize();
 	g_MapInstance.Finalize();
-	g_ObjectManager.Finalize(); // 追加
+	g_ObjectManager.Finalize();
+	
+	// デバッグAABB描画の終了処理
+	DebugAABB::Finalize();
 
 	if (g_uiCharge) {
 		UIManager::Remove(g_uiCharge);
 		delete g_uiCharge;
 		g_uiCharge = nullptr;
+	}
+
+	// アイテムジェネレーターの終了処理
+	if (g_itemGenerator) {
+		delete g_itemGenerator;
+		g_itemGenerator = nullptr;
 	}
 
 	// プレイヤーを削除
@@ -212,6 +319,39 @@ void Game_Update(double elapsed_time)
 		if (g_players[i]) g_players[i]->Update(elapsed_time);
 	}
 
+	// アイテムジェネレーターの更新
+	if (g_itemGenerator) {
+		g_itemGenerator->Update(elapsed_time);
+		
+		// ItemGeneratorObject が生成したアイテムを登録
+		auto generators = g_ObjectManager.GetAllItemGenerators();
+		for (auto generator : generators) {
+			if (generator) {
+				const auto& items = generator->GetSpawnedItems();
+				for (auto item : items) {
+					// すでに登録されているかチェック（簡易的）
+					bool alreadyRegistered = false;
+					for (auto registeredItem : g_itemGenerator->GetItems()) {
+						if (registeredItem == item) {
+							alreadyRegistered = true;
+							break;
+						}
+					}
+					if (!alreadyRegistered) {
+						g_itemGenerator->RegisterItem(item);
+					}
+				}
+			}
+		}
+		
+		// プレイヤーのピックアップ判定
+		for (int i = 0; i < g_playerCount; ++i) {
+			if (g_players[i]) {
+				g_itemGenerator->CheckPickup(g_players[i]);
+			}
+		}
+	}
+
 	// UI 更新
 	UIManager::UpdateAll(elapsed_time);
 }
@@ -254,6 +394,12 @@ void Game_Draw()
 		g_MapInstance.Draw();
 		g_ObjectManager.Draw(); // g_MapInstance.Draw() の後に追加
 
+		// アイテムジェネレーターを描画
+		if (g_itemGenerator) {
+			Light_SetAmbient({0.5f,0.5f,0.5f,1.0f });
+			g_itemGenerator->Draw();
+		}
+
 		Light_SetAmbient({0.3f,0.3f,0.3f,1.0f });
 		for (int i = 0; i < g_playerCount; ++i) {
 			if (g_players[i]) {
@@ -280,10 +426,15 @@ void Game_Draw()
             }
 		}
 
+		// デバッグ用AABB描画
+		//g_ObjectManager.DrawDebugAABBs();
 		Direct3D_SetDepthTest(false);
 
 		//2D UI 描画
 		UIManager::DrawAll();
+		
+		
+
 
 		// プレイヤーの体力を DebugText で左下に表示
 		if (!g_debugText && g_players[0]) {
@@ -370,6 +521,12 @@ void Game_Draw()
 		g_MapInstance.Draw();
 		g_ObjectManager.Draw(); // g_MapInstance.Draw() の後に追加
 
+		// アイテムジェネレーターを描画
+		if (g_itemGenerator) {
+			Light_SetAmbient({0.5f,0.5f,0.5f,1.0f });
+			g_itemGenerator->Draw();
+		}
+
 		Light_SetAmbient({0.3f,0.3f,0.3f,1.0f});
 		for (int j =0; j < g_playerCount; ++j) {
 			if (g_players[j]) g_players[j]->Draw();
@@ -386,6 +543,11 @@ void Game_Draw()
 	vpFull.Width = SCREEN_WIDTH; vpFull.Height = SCREEN_HEIGHT;
 	vpFull.MinDepth =0.0f; vpFull.MaxDepth =1.0f;
 	ctx->RSSetViewports(1, &vpFull);
+
+	// デバッグ用AABB描画（マルチプレイヤー時）
+	Direct3D_SetDepthTest(true);
+	g_ObjectManager.DrawDebugAABBs();
+	Direct3D_SetDepthTest(false);
 
 	// フルスクリーンでグローバル UI を一度描画
 	UIManager::DrawAll();

@@ -144,6 +144,7 @@
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="controller.cpp" />
     <ClCompile Include="cube.cpp" />
+    <ClCompile Include="DebugAABB.cpp" />
     <ClCompile Include="debug_camera.cpp" />
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_text.cpp" />
@@ -154,6 +155,9 @@
     <ClCompile Include="game_effect.cpp" />
     <ClCompile Include="game_score.cpp" />
     <ClCompile Include="grid.cpp" />
+    <ClCompile Include="item.cpp" />
+    <ClCompile Include="ItemGenerator.cpp" />
+    <ClCompile Include="ItemGeneratorObject.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="key_logger.cpp" />
     <ClCompile Include="light.cpp" />
@@ -163,7 +167,9 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="Pole.cpp" />
     <ClCompile Include="polygon.cpp" />
+    <ClCompile Include="PowerLine.cpp" />
     <ClCompile Include="result.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -185,6 +191,7 @@
     <ClInclude Include="collision.h" />
     <ClInclude Include="controller.h" />
     <ClInclude Include="cube.h" />
+    <ClInclude Include="DebugAABB.h" />
     <ClInclude Include="debug_camera.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
@@ -195,6 +202,9 @@
     <ClInclude Include="game_effect.h" />
     <ClInclude Include="game_score.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="item.h" />
+    <ClInclude Include="ItemGenerator.h" />
+    <ClInclude Include="ItemGeneratorObject.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="key_logger.h" />
     <ClInclude Include="light.h" />
@@ -203,7 +213,9 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="ObjectManager.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="Pole.h" />
     <ClInclude Include="polygon.h" />
+    <ClInclude Include="PowerLine.h" />
     <ClInclude Include="result.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="shader.h" />

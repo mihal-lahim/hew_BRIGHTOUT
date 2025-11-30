@@ -34,6 +34,29 @@ public:
     void Initialize();
     void Finalize();
     void Draw() const;
+
+    // 電線ブロック取得用（仮のBlock型とPowerLine判定を追加）
+    struct Block {
+        enum Type {
+            PowerLine,
+            Other
+        };
+        Type type;
+        DirectX::XMFLOAT3 position;
+        Type GetType() const { return type; }
+        DirectX::XMFLOAT3 GetPosition() const { return position; }
+    };
+
+    // 電線上のブロックリスト取得
+    std::vector<Block> GetBlocks() const {
+        std::vector<Block> blocks;
+        // GroundTileから仮にPowerLineブロックを生成（実装は適宜修正）
+        for (const auto& tile : m_GroundTiles) {
+            // ここでは仮に全てPowerLineとして追加
+            blocks.push_back(Block{ Block::PowerLine, tile.position });
+        }
+        return blocks;
+    }
 };
 
 // グローバル Map インスタンス
