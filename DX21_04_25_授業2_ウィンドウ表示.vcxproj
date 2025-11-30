@@ -105,11 +105,16 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y $(TargetDir)*.cso $(ProjectDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -117,23 +122,131 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalIncludeDirectories>Assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>d3d11.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /D /Y $(TargetDir)*.cso $(ProjectDir)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="camera_manager.cpp" />
+    <ClCompile Include="collision.cpp" />
+    <ClCompile Include="controller.cpp" />
+    <ClCompile Include="cube.cpp" />
+    <ClCompile Include="debug_camera.cpp" />
+    <ClCompile Include="debug_ostream.cpp" />
+    <ClCompile Include="debug_text.cpp" />
     <ClCompile Include="direct3d.cpp" />
+    <ClCompile Include="fade.cpp" />
+    <ClCompile Include="game.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="game_effect.cpp" />
+    <ClCompile Include="game_score.cpp" />
+    <ClCompile Include="grid.cpp" />
+    <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="key_logger.cpp" />
+    <ClCompile Include="light.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="map.cpp" />
+    <ClCompile Include="model.cpp" />
+    <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="ObjectManager.cpp" />
+    <ClCompile Include="player.cpp" />
+    <ClCompile Include="polygon.cpp" />
+    <ClCompile Include="result.cpp" />
+    <ClCompile Include="scene.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="shader3d.cpp" />
+    <ClCompile Include="sprite.cpp" />
+    <ClCompile Include="sprite_anim.cpp" />
+    <ClCompile Include="system_timer.cpp" />
+    <ClCompile Include="texture.cpp" />
+    <ClCompile Include="title.cpp" />
+    <ClCompile Include="top_down_camera.cpp" />
+    <ClCompile Include="UI_Charge.cpp" />
+    <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\controller\cont_12\controller.h" />
+    <ClInclude Include="Audio.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="camera_manager.h" />
+    <ClInclude Include="collision.h" />
+    <ClInclude Include="controller.h" />
+    <ClInclude Include="cube.h" />
+    <ClInclude Include="debug_camera.h" />
+    <ClInclude Include="debug_ostream.h" />
+    <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
+    <ClInclude Include="fade.h" />
+    <ClInclude Include="game.h" />
+    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="game_effect.h" />
+    <ClInclude Include="game_score.h" />
+    <ClInclude Include="grid.h" />
+    <ClInclude Include="keyboard.h" />
+    <ClInclude Include="key_logger.h" />
+    <ClInclude Include="light.h" />
+    <ClInclude Include="map.h" />
+    <ClInclude Include="model.h" />
+    <ClInclude Include="mouse.h" />
+    <ClInclude Include="ObjectManager.h" />
+    <ClInclude Include="player.h" />
+    <ClInclude Include="polygon.h" />
+    <ClInclude Include="result.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="shader3d.h" />
+    <ClInclude Include="sprite.h" />
+    <ClInclude Include="sprite_anim.h" />
+    <ClInclude Include="system_timer.h" />
+    <ClInclude Include="texture.h" />
+    <ClInclude Include="title.h" />
+    <ClInclude Include="top_down_camera.h" />
+    <ClInclude Include="UI.h" />
+    <ClInclude Include="UI_Charge.h" />
+    <ClInclude Include="WICTextureLoader11.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="PixelShader2d.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="PixelShader3d.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="VertexShader2d.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="VertexShader3d.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
