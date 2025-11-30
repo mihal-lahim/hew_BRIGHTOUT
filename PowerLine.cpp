@@ -10,6 +10,7 @@ PowerLine::PowerLine(const XMFLOAT3& startPos, const XMFLOAT3& endPos, float rad
       m_radius(radius),
       m_electricityIntensity(1.0f)
 {
+    SetTag(GameObjectTag::POWER_LINE);
     // ’†“_‚ğ GameObject ‚ÌˆÊ’u‚Éİ’è
     m_Position.x = (startPos.x + endPos.x) * 0.5f;
     m_Position.y = (startPos.y + endPos.y) * 0.5f;

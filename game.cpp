@@ -359,27 +359,6 @@ void Game_Update(double elapsed_time)
 	if (g_itemGenerator) {
 		g_itemGenerator->Update(elapsed_time);
 
-		// ItemGeneratorObject が生成したアイテムを登録
-		auto generators = g_ObjectManager.GetAllItemGenerators();
-		for (auto generator : generators) {
-			if (generator) {
-				const auto& items = generator->GetSpawnedItems();
-				for (auto item : items) {
-					// すでに登録されているかチェック（簡易的）
-					bool alreadyRegistered = false;
-					for (auto registeredItem : g_itemGenerator->GetItems()) {
-						if (registeredItem == item) {
-							alreadyRegistered = true;
-							break;
-						}
-					}
-					if (!alreadyRegistered) {
-						g_itemGenerator->RegisterItem(item);
-					}
-				}
-			}
-		}
-
 		// プレイヤーのピックアップ判定
 		for (int i = 0; i < g_playerCount; ++i) {
 			if (g_players[i]) {
@@ -391,6 +370,30 @@ void Game_Update(double elapsed_time)
 	// ボタンヒント UI の更新
 	if (g_buttonHintUI && g_players[0]) {
 		g_buttonHintUI->Update(g_players[0], elapsed_time);
+	}
+
+	// ハウスへの電気供給（最も近いハウスへ）
+	// Yボタンで供給開始、再度押すと供給停止
+	if (g_players[0] && g_controllers[0]) {
+		House* nearestHouse = g_players[0]->GetNearestHouse();
+		
+		if (g_controllers[0]->WasPressed(Controller::BUTTON_Y)) {
+			if (g_players[0]->IsSupplyingElectricity()) {
+				// 供給中なら停止
+				g_players[0]->StopSupplyingElectricity();
+			} else if (nearestHouse) {
+				// 供給中でなく、ハウスが範囲内なら開始
+				g_players[0]->StartSupplyingElectricity(nearestHouse);
+			}
+		}
+
+		// 供給中なら継続的に電気を転送
+		if (g_players[0]->IsSupplyingElectricity()) {
+			House* supplyingHouse = g_players[0]->GetSupplyingHouse();
+			if (supplyingHouse) {
+				g_players[0]->TransferElectricityToHouse(supplyingHouse, elapsed_time);
+			}
+		}
 	}
 
 	// UI 更新
@@ -474,9 +477,6 @@ void Game_Draw()
 
 		//2D UI 描画
 		UIManager::DrawAll();
-
-
-
 
 		// プレイヤーの体力を DebugText で左下に表示
 		if (!g_debugText && g_players[0]) {

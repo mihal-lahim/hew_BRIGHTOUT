@@ -19,6 +19,7 @@ public:
     void Update(double elapsedTime);
     void Draw() const;
 
+    // ゲームオブジェクトを取得するメソッド
     const std::vector<std::unique_ptr<GameObject>>& GetGameObjects() const { return m_GameObjects; }
     
     // ゲームオブジェクトを追加するメソッド
@@ -29,17 +30,10 @@ public:
 
     // 電柱を管理するメソッド
     class Pole* GetPoleByID(int poleID);
-    std::vector<class Pole*> GetAllPoles();
     void ConnectNearbyPoles();  // 近い電柱同士を電線で接続
 
     // アイテムジェネレータオブジェクトを管理するメソッド
     class ItemGeneratorObject* GetItemGeneratorByID(int generatorID);
-    std::vector<class ItemGeneratorObject*> GetAllItemGenerators();
-    void UpdateItemGenerators(double elapsedTime);  // すべてのジェネレータを更新
-
-    // 電柱と電線の取得
-    std::vector<class Pole*> GetAllPoles() const;
-    std::vector<class PowerLine*> GetAllPowerLines() const;
 
     // デバッグ用：すべてのAABBを描画
     void DrawDebugAABBs() const;

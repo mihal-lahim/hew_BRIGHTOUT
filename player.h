@@ -83,6 +83,10 @@ private:
 	static constexpr float ELECTRICITY_TRANSFER_RATE = 10.0f;  // 1秒あたりの電気供給量（体力消費量）
 	static constexpr float HOUSE_INTERACTION_RADIUS = 5.0f;  // ハウス相互作用距離
 
+	// 電気供給状態
+	class House* m_supplyingHouse = nullptr;  // 現在供給中のハウス
+	bool m_isSupplying = false;                // 供給中フラグ
+
 public:
  Player();
  ~Player();
@@ -158,6 +162,19 @@ public:
 
  // ハウスへの電気供給
  void TransferElectricityToHouse(class House* house, double elapsedSec);
+
+ // 最も近いハウスを取得
+ class House* GetNearestHouse() const;
+
+ // 供給中かどうかを判定
+ bool IsSupplyingElectricity() const { return m_isSupplying; }
+ 
+ // 供給中のハウスを取得
+ class House* GetSupplyingHouse() const { return m_supplyingHouse; }
+
+ // 供給開始/停止
+ void StartSupplyingElectricity(class House* house);
+ void StopSupplyingElectricity();
 
 private:
     // 衝突解決ヘルパー

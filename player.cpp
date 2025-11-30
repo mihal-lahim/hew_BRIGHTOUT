@@ -339,19 +339,22 @@ AABB Player::GetAABB() const
 bool Player::IsNearPole() const
 {
 	extern ObjectManager g_ObjectManager;
-	auto poles = g_ObjectManager.GetAllPoles();
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
 	
-	for (const auto& pole : poles) {
-		if (!pole) continue;
-		
-		DirectX::XMFLOAT3 polePos = pole->GetPosition();
-		float dx = polePos.x - position_.x;
-		float dz = polePos.z - position_.z;
-		// 水平距離のみで判定（高さは無視）
-		float horizontalDistance = sqrtf(dx*dx + dz*dz);
-		
-		if (horizontalDistance <= POLE_DETECTION_RADIUS) {
-			return true;
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POLE) {
+			Pole* pole = static_cast<Pole*>(obj.get());
+			if (!pole) continue;
+			
+			DirectX::XMFLOAT3 polePos = pole->GetPosition();
+			float dx = polePos.x - position_.x;
+			float dz = polePos.z - position_.z;
+			// 水平距離のみで判定（高さは無視）
+			float horizontalDistance = sqrtf(dx*dx + dz*dz);
+			
+			if (horizontalDistance <= POLE_DETECTION_RADIUS) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -363,39 +366,40 @@ void Player::SnapToNearestPowerLine()
 	if (state != State::ELECTRICITY) return;
 
 	extern ObjectManager g_ObjectManager;
-	auto powerLines = g_ObjectManager.GetAllPowerLines();
-	
-	if (powerLines.empty()) return;
 
 	float minDistance = FLT_MAX;
 	DirectX::XMFLOAT3 snappedPos = position_;
 	bool found = false;
 
 	// すべての電線の中から最も近いポイントを探す
-	for (const auto& line : powerLines) {
-		if (!line) continue;
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POWER_LINE) {
+			PowerLine* line = static_cast<PowerLine*>(obj.get());
+			if (!line) continue;
 
-		// 電線上の最も近いポイントを取得
-		DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
-		
-		float dx = closestPoint.x - position_.x;
-		float dy = closestPoint.y - position_.y;
-		float dz = closestPoint.z - position_.z;
-		
-		// 水平距離と垂直距離を分別
-		float horizontalDist = sqrtf(dx * dx + dz * dz);
-		float verticalDist = fabsf(dy);
-		
-		// 水平距離が範囲内なら、垂直距離に関わらずスナップ対象にする
-		// 水平距離: 2m以内、垂直距離: 5m以内
-		if (horizontalDist <= POWER_LINE_SNAP_DISTANCE && verticalDist <= 5.0f) {
-			// 3次元距離で最も近いものを選ぶ
-			float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+			// 電線上の最も近いポイントを取得
+			DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
 			
-			if (distance < minDistance) {
-				minDistance = distance;
-				snappedPos = closestPoint;
-				found = true;
+			float dx = closestPoint.x - position_.x;
+			float dy = closestPoint.y - position_.y;
+			float dz = closestPoint.z - position_.z;
+			
+			// 水平距離と垂直距離を分別
+			float horizontalDist = sqrtf(dx * dx + dz * dz);
+			float verticalDist = fabsf(dy);
+			
+			// 水平距離が範囲内なら、垂直距離に関わらずスナップ対象にする
+			// 水平距離: 2m以内、垂直距離: 5m以内
+			if (horizontalDist <= POWER_LINE_SNAP_DISTANCE && verticalDist <= 5.0f) {
+				// 3次元距離で最も近いものを選ぶ
+				float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+				
+				if (distance < minDistance) {
+					minDistance = distance;
+					snappedPos = closestPoint;
+					found = true;
+				}
 			}
 		}
 	}
@@ -412,29 +416,32 @@ void Player::SnapToNearestPowerLine()
 void Player::KnockbackFromPole()
 {
 	extern ObjectManager g_ObjectManager;
-	auto poles = g_ObjectManager.GetAllPoles();
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
 	
-	if (poles.empty()) return;
-
-	// 最も近い電柱を探す
+	Pole* nearestPole = nullptr;
 	float minDistance = FLT_MAX;
-	DirectX::XMFLOAT3 nearestPolePos = position_;
+	
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POLE) {
+			Pole* pole = static_cast<Pole*>(obj.get());
+			if (!pole) continue;
 
-	for (const auto& pole : poles) {
-		if (!pole) continue;
+			DirectX::XMFLOAT3 polePos = pole->GetPosition();
+			float dx = polePos.x - position_.x;
+			float dz = polePos.z - position_.z;
+			float horizontalDistance = sqrtf(dx * dx + dz * dz);
 
-		DirectX::XMFLOAT3 polePos = pole->GetPosition();
-		float dx = polePos.x - position_.x;
-		float dz = polePos.z - position_.z;
-		float horizontalDistance = sqrtf(dx * dx + dz * dz);
-
-		if (horizontalDistance < minDistance) {
-			minDistance = horizontalDistance;
-			nearestPolePos = polePos;
+			if (horizontalDistance < minDistance) {
+				minDistance = horizontalDistance;
+				nearestPole = pole;
+			}
 		}
 	}
 
+	if (!nearestPole) return;
+
 	// 最も近い電柱からプレイヤーに向かう方向を計算
+	DirectX::XMFLOAT3 nearestPolePos = nearestPole->GetPosition();
 	float knockbackDx = position_.x - nearestPolePos.x;
 	float knockbackDz = position_.z - nearestPolePos.z;
 	float knockbackDist = sqrtf(knockbackDx * knockbackDx + knockbackDz * knockbackDz);
@@ -491,10 +498,10 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 {
 	if (!house || health_ <= 0) return;
 
-	// 供給量を計算（1秒あたりのレートから経過時間分を計算）
+	// 1フレームあたりの供給量（毎秒 10 HP 供給）
 	float transferAmount = ELECTRICITY_TRANSFER_RATE * static_cast<float>(elapsedSec);
 	
-	// プレイヤーが持っている電気量（体力）の方が少ない場合はそれを上限にする
+	// プレイヤーが持っている電気量の方が少ない場合はそれを上限にする
 	if (health_ < transferAmount) {
 		transferAmount = static_cast<float>(health_);
 	}
@@ -504,4 +511,44 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 	
 	// プレイヤーの体力から差し引く（電気を消費）
 	TakeDamage(static_cast<int>(transferAmount));
+}
+
+// 最も近いハウスを取得
+class House* Player::GetNearestHouse() const
+{
+	extern ObjectManager g_ObjectManager;
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
+	
+	House* nearestHouse = nullptr;
+	float minDistance = FLT_MAX;
+	
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::HOUSE) {
+			House* house = static_cast<House*>(obj.get());
+			if (!house) continue;
+			
+			float distance = house->GetDistanceToPlayer(position_);
+			
+			if (distance < minDistance && distance <= HOUSE_INTERACTION_RADIUS) {
+				minDistance = distance;
+				nearestHouse = house;
+			}
+		}
+	}
+	return nearestHouse;
+}
+
+// 供給開始
+void Player::StartSupplyingElectricity(House* house)
+{
+	if (!house || m_isSupplying) return;
+	m_supplyingHouse = house;
+	m_isSupplying = true;
+}
+
+// 供給停止
+void Player::StopSupplyingElectricity()
+{
+	m_isSupplying = false;
+	m_supplyingHouse = nullptr;
 }

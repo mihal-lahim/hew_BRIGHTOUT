@@ -11,6 +11,7 @@ House::House(const XMFLOAT3& pos, MODEL* model, float maxElectricity)
       m_isRepaired(false),
       m_effectTimer(0.0f)
 {
+    SetTag(GameObjectTag::HOUSE);
 }
 
 void House::Update(double elapsed)
