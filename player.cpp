@@ -6,9 +6,10 @@
 #include "controller.h"
 #include "top_down_camera.h"
 #include "map.h"
-#include "ObjectManager.h" // 追加
+#include "ObjectManager.h"
 #include "Pole.h"
 #include "PowerLine.h"
+#include "house.h"
 
 // 入力反転フラグ（必要に応じて調整）
 static constexpr bool INVERT_LS_X = true; // 左右が反転しているので X を反転
@@ -42,7 +43,7 @@ Player::Player(MODEL* model, MODEL* electricModel, const XMFLOAT3& pos, const XM
 // 毎フレーム更新（ダッシュ継続時間の管理、入力処理）
 void Player::Update(double elapsedSec)
 {
-	// ダッシュ状態の更新
+	// 1. ダッシュ時間の更新
 	if (isDashing_) {
 		dashTimeRemaining_ -= static_cast<float>(elapsedSec);
 		if (dashTimeRemaining_ <= 0.0f) {
@@ -55,6 +56,15 @@ void Player::Update(double elapsedSec)
 	// 衝突判定スキップタイマーの更新
 	if (skipCollisionTimer_ > 0.0f) {
 		skipCollisionTimer_ -= static_cast<float>(elapsedSec);
+	}
+
+	// 電線ダメージ処理：電気状態の間、定期的にダメージを受ける
+	if (state == State::ELECTRICITY) {
+		powerLineDamageTimer_ -= static_cast<float>(elapsedSec);
+		if (powerLineDamageTimer_ <= 0.0f) {
+			TakeDamage(POWERLINE_DAMAGE_AMOUNT);
+			powerLineDamageTimer_ = POWERLINE_DAMAGE_INTERVAL; // タイマーをリセット
+		}
 	}
 
 	// 1. 入力に基づいて水平方向の移動ベクトルを決定
@@ -116,7 +126,22 @@ void Player::Update(double elapsedSec)
 			health_ = maxHealth_;
 			position_ = XMFLOAT3(0.0f, 15.0f, 0.0f);
 			usePlayer = true;
+			
+			// 状態をHUMANにリセット
 			ChangeState(State::HUMAN);
+			
+			// 移動速度をリセット
+			currentSpeed_ = baseSpeed_;
+			
+			// ダッシュ状態をリセット
+			isDashing_ = false;
+			dashTimeRemaining_ = 0.0f;
+			
+			// その他の状態をリセット
+			velocityY_ = 0.0f;
+			isGrounded_ = false;
+			powerLineDamageTimer_ = 0.0f;
+			skipCollisionTimer_ = 0.0f;
 		}
 		
 	}
@@ -441,12 +466,42 @@ void Player::ResetToElectricityState()
 	// 電気状態の速度を設定
 	currentSpeed_ = baseSpeed_ * electricSpeedmul;
 
-	// 最も近い電線にスナップ
+	// ダメージタイマーをリセット：電気状態に変わった直後はダメージを受けないようにする
+	powerLineDamageTimer_ = POWERLINE_DAMAGE_INTERVAL;
+
+	// 最寄りの電線にスナップ
 	SnapToNearestPowerLine();
 }
 
 // プレイヤーステート変更メソッド
 void Player::ChangeState(Player::State newState)
 {
+	if (state == newState) return; // 状態が変わらない場合は処理しない
+
 	state = newState;
+
+	// HUMAN状態に戻る場合はタイマーをリセット
+	if (newState == State::HUMAN) {
+		powerLineDamageTimer_ = 0.0f;
+	}
+}
+
+// ハウスへの電気供給（ボタン操作で呼ばれる）
+void Player::TransferElectricityToHouse(House* house, double elapsedSec)
+{
+	if (!house || health_ <= 0) return;
+
+	// 供給量を計算（1秒あたりのレートから経過時間分を計算）
+	float transferAmount = ELECTRICITY_TRANSFER_RATE * static_cast<float>(elapsedSec);
+	
+	// プレイヤーが持っている電気量（体力）の方が少ない場合はそれを上限にする
+	if (health_ < transferAmount) {
+		transferAmount = static_cast<float>(health_);
+	}
+
+	// ハウスに電気を供給
+	house->ReceiveElectricity(transferAmount);
+	
+	// プレイヤーの体力から差し引く（電気を消費）
+	TakeDamage(static_cast<int>(transferAmount));
 }

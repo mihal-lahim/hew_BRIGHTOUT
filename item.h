@@ -30,9 +30,16 @@ public:
     // アイテムタイプに応じた色を取得
     DirectX::XMFLOAT4 GetColor() const;
 
+    // テクスチャID取得
+    int GetTextureID() const { return m_textureID; }
+
 private:
     float m_size;          // 描画サイズ
     bool m_active;         // キャラクターが有効か
     double m_effectTimer;  // 効果時間（必要に応じて使用）
     ItemType m_type;       // アイテムタイプ
+    int m_textureID;       // テクスチャID（-1は未ロード）
+
+    // タイプに応じてテクスチャをロード
+    void LoadTextureForType(ItemType type);
 };

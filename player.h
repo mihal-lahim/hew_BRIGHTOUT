@@ -17,6 +17,7 @@ struct MODEL; // forward declaration for model pointer
 class Controller; // forward declaration
 class TopDownCamera; // forward declaration
 class Camera; // forward declaration for getter
+class House; // forward declaration for house pointer
 
 class Player
 {
@@ -72,6 +73,15 @@ private:
 	// 衝突判定スキップ時間管理
 	float skipCollisionTimer_ = 0.0f; // 衝突判定スキップ時間
 	static constexpr float SKIP_COLLISION_DURATION = 0.2f; // 衝突判定をスキップする時間（秒）
+
+	// 電線ダメージ管理
+	float powerLineDamageTimer_ = 0.0f; // 電線ダメージを与えるまでの時間
+	static constexpr float POWERLINE_DAMAGE_INTERVAL = 1.0f; // ダメージ間隔（秒）
+	static constexpr int POWERLINE_DAMAGE_AMOUNT = 5; // 1回のダメージ量
+
+	// ハウスへの電気供給管理
+	static constexpr float ELECTRICITY_TRANSFER_RATE = 10.0f;  // 1秒あたりの電気供給量（体力消費量）
+	static constexpr float HOUSE_INTERACTION_RADIUS = 5.0f;  // ハウス相互作用距離
 
 public:
  Player();
@@ -145,6 +155,9 @@ public:
  
  // 電気状態から人間に変化する際、電柱から跳ね返す
  void KnockbackFromPole();
+
+ // ハウスへの電気供給
+ void TransferElectricityToHouse(class House* house, double elapsedSec);
 
 private:
     // 衝突解決ヘルパー

@@ -1,6 +1,7 @@
 #include "item.h"
 #include "player.h"
 #include "cube.h"
+#include "texture.h"
 #include <cmath>
 
 Item::Item(const XMFLOAT3& pos, ItemType type, float size)
@@ -8,8 +9,49 @@ Item::Item(const XMFLOAT3& pos, ItemType type, float size)
       m_size(size),
       m_active(true),
       m_effectTimer(0.0),
-      m_type(type)
+      m_type(type),
+      m_textureID(-1)
 {
+    // タイプに応じてテクスチャをロード
+    LoadTextureForType(type);
+}
+
+void Item::LoadTextureForType(ItemType type)
+{
+    // タイプごとにテクスチャファイルを指定してロード
+    switch (type) {
+        case ItemType::SpeedBoost:
+            // 速度アップアイテム用テクスチャ（黄色系）
+            m_textureID = Texture_Load(L"texture/God.png");
+            if (m_textureID == -1) {
+                // フォールバック：デフォルトテクスチャ
+                m_textureID = Texture_Load(L"texture/siro.png");
+            }
+            break;
+
+        case ItemType::ChargeTank:
+            // 充電容量アイテム用テクスチャ（シアン系）
+            m_textureID = Texture_Load(L"texture/kakutyoutanku.png");
+            if (m_textureID == -1) {
+                // フォールバック：デフォルトテクスチャ
+                m_textureID = Texture_Load(L"texture/siro.png");
+            }
+            break;
+
+        case ItemType::ElectricBoost:
+            // 放電時間アイテム用テクスチャ（マゼンタ系）
+            m_textureID = Texture_Load(L"texture/BRIGHTOUT_map_juuden.png");
+            if (m_textureID == -1) {
+                // フォールバック：デフォルトテクスチャ
+                m_textureID = Texture_Load(L"texture/siro.png");
+            }
+            break;
+
+        default:
+            // 不明なタイプの場合
+            m_textureID = Texture_Load(L"texture/siro.png");
+            break;
+    }
 }
 
 void Item::Update(double elapsed)
@@ -43,28 +85,18 @@ void Item::Draw() const
 {
     if (!m_active) return;
 
-    // キューブを描画（アイテムタイプに応じた色）
+    // テクスチャを設定して描画
     {
         XMMATRIX scale = XMMatrixScaling(m_size, m_size, m_size);
         XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
         XMMATRIX world = scale * translation;
         
-        // テクスチャID に応じて異なる描画（カラーマッピング）
-        // ID 0：白（基本）/ ID 1-3：色付き
-        int colorTextureId = 0;
-        switch (m_type) {
-            case ItemType::SpeedBoost:
-                colorTextureId = 1;  // 黄色
-                break;
-            case ItemType::ChargeTank:
-                colorTextureId = 2;  // シアン
-                break;
-            case ItemType::ElectricBoost:
-                colorTextureId = 3;  // マゼンタ
-                break;
+        // ロードしたテクスチャを設定
+        if (m_textureID != -1) {
+            Texture_SetTexture(m_textureID);
         }
         
-        Cube_Draw(colorTextureId, world);
+        Cube_Draw(m_textureID, world);
     }
 }
 
