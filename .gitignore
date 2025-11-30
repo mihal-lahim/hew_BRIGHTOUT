@@ -71,4 +71,4 @@ Makefile
 # texture/ の場合は必要に応じてコメント解除
 # texture/
 # model/
-# sound/
+# sound/_codeql_detected_source_root
