@@ -1,0 +1,11 @@
+//=======================================
+// debug ostream������Ďg����[debug_ostream.cpp]
+// Author	:sumi rintarou
+// Date		:4/25
+//
+//=======================================
+#include "../include/debug_ostream.h"
+namespace hal
+{
+	debug_ostream dout;
+}
