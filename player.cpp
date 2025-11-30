@@ -7,6 +7,8 @@
 #include "top_down_camera.h"
 #include "map.h"
 #include "ObjectManager.h" // 追加
+#include "Pole.h"
+#include "PowerLine.h"
 
 // 入力反転フラグ（必要に応じて調整）
 static constexpr bool INVERT_LS_X = true; // 左右が反転しているので X を反転
@@ -50,14 +52,35 @@ void Player::Update(double elapsedSec)
 		}
 	}
 
+	// 衝突判定スキップタイマーの更新
+	if (skipCollisionTimer_ > 0.0f) {
+		skipCollisionTimer_ -= static_cast<float>(elapsedSec);
+	}
+
 	// 1. 入力に基づいて水平方向の移動ベクトルを決定
 	XMFLOAT3 horizontalMove = { 0.0f, 0.0f, 0.0f };
 	if (controller_) {
-		// 状態切替（Bボタン押下で切替）
+		// 電気ボタン (B ボタンで変身)
 		if (controller_->WasPressed(Controller::BUTTON_B)) {
-			if (state == State::HUMAN) state = State::ELECTRICITY; else state = State::HUMAN;
-			if (!isDashing_) {
-				currentSpeed_ = (state == State::ELECTRICITY) ? (baseSpeed_ * electricSpeedmul) : baseSpeed_;
+			if (state == State::HUMAN) {
+				// HUMAN -> ELECTRICITY: 電柱近く必須
+				if (IsNearPole()) {
+					ChangeState(State::ELECTRICITY);
+					// 電気状態へのリセット処理
+					ResetToElectricityState();
+				}
+			} else {
+				// ELECTRICITY -> HUMAN: 電柱近く必須
+				if (IsNearPole()) {
+					ChangeState(State::HUMAN);
+					if (!isDashing_) {
+						currentSpeed_ = baseSpeed_;
+					}
+					// 電柱から跳ね返す処理
+					KnockbackFromPole();
+					// 0.5秒間、衝突判定をスキップ
+					skipCollisionTimer_ = SKIP_COLLISION_DURATION;
+				}
 			}
 		}
 
@@ -93,6 +116,7 @@ void Player::Update(double elapsedSec)
 			health_ = maxHealth_;
 			position_ = XMFLOAT3(0.0f, 15.0f, 0.0f);
 			usePlayer = true;
+			ChangeState(State::HUMAN);
 		}
 		
 	}
@@ -102,15 +126,35 @@ void Player::Update(double elapsedSec)
 		velocityY_ -= GRAVITY * static_cast<float>(elapsedSec);
 	}
 
-	// 3. 移動と衝突解決
+	// 3. 移動と衝突処理
 	XMFLOAT3 desiredMove = {
 		horizontalMove.x * currentSpeed_ * static_cast<float>(elapsedSec),
 		velocityY_ * static_cast<float>(elapsedSec),
 		horizontalMove.z * currentSpeed_ * static_cast<float>(elapsedSec)
 	};
-	ResolveCollisions(desiredMove, elapsedSec);
+	
+	// 電気状態の場合は衝突判定をスキップして直接移動
+	if (state == State::ELECTRICITY) {
+		position_.x += desiredMove.x;
+		position_.z += desiredMove.z;
+		velocityY_ = 0.0f;
+		isGrounded_ = true;
+	} else if (skipCollisionTimer_ > 0.0f) {
+		// 状態変更直後はスキップタイマーがある間、衝突判定をスキップ
+		position_.x += desiredMove.x;
+		position_.z += desiredMove.z;
+		position_.y += desiredMove.y;
+	} else {
+		// HUMAN状態は通常の衝突判定を適用
+		ResolveCollisions(desiredMove, elapsedSec);
+	}
 
-	// 4. 向きを更新
+	// 4. 電気状態の場合、電線にスナップさせて落下防止
+	if (state == State::ELECTRICITY) {
+		SnapToNearestPowerLine();
+	}
+
+	// 5. 向きの更新
 	if (horizontalMove.x != 0.0f || horizontalMove.z != 0.0f) {
 		direction_ = horizontalMove;
 	}
@@ -266,8 +310,143 @@ AABB Player::GetAABB() const
 	return AABB(min, max);
 }
 
-// Player::Move は現在使われていないため、空にするか削除
-void Player::Move(const XMFLOAT3& dir, double elapsedSec)
+// 電柱周辺検出メソッド
+bool Player::IsNearPole() const
 {
-	// このロジックは Player::Update と ResolveCollisions に統合されました
+	extern ObjectManager g_ObjectManager;
+	auto poles = g_ObjectManager.GetAllPoles();
+	
+	for (const auto& pole : poles) {
+		if (!pole) continue;
+		
+		DirectX::XMFLOAT3 polePos = pole->GetPosition();
+		float dx = polePos.x - position_.x;
+		float dz = polePos.z - position_.z;
+		// 水平距離のみで判定（高さは無視）
+		float horizontalDistance = sqrtf(dx*dx + dz*dz);
+		
+		if (horizontalDistance <= POLE_DETECTION_RADIUS) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// 最も近い電線にスナップするメソッド
+void Player::SnapToNearestPowerLine()
+{
+	if (state != State::ELECTRICITY) return;
+
+	extern ObjectManager g_ObjectManager;
+	auto powerLines = g_ObjectManager.GetAllPowerLines();
+	
+	if (powerLines.empty()) return;
+
+	float minDistance = FLT_MAX;
+	DirectX::XMFLOAT3 snappedPos = position_;
+	bool found = false;
+
+	// すべての電線の中から最も近いポイントを探す
+	for (const auto& line : powerLines) {
+		if (!line) continue;
+
+		// 電線上の最も近いポイントを取得
+		DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
+		
+		float dx = closestPoint.x - position_.x;
+		float dy = closestPoint.y - position_.y;
+		float dz = closestPoint.z - position_.z;
+		
+		// 水平距離と垂直距離を分別
+		float horizontalDist = sqrtf(dx * dx + dz * dz);
+		float verticalDist = fabsf(dy);
+		
+		// 水平距離が範囲内なら、垂直距離に関わらずスナップ対象にする
+		// 水平距離: 2m以内、垂直距離: 5m以内
+		if (horizontalDist <= POWER_LINE_SNAP_DISTANCE && verticalDist <= 5.0f) {
+			// 3次元距離で最も近いものを選ぶ
+			float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+			
+			if (distance < minDistance) {
+				minDistance = distance;
+				snappedPos = closestPoint;
+				found = true;
+			}
+		}
+	}
+
+	// 最も近い電線にスナップ
+	if (found) {
+		position_ = snappedPos;
+		isGrounded_ = true;
+		velocityY_ = 0.0f;
+	}
+}
+
+// 電気状態から人間に変化する際に電柱から跳ね返す
+void Player::KnockbackFromPole()
+{
+	extern ObjectManager g_ObjectManager;
+	auto poles = g_ObjectManager.GetAllPoles();
+	
+	if (poles.empty()) return;
+
+	// 最も近い電柱を探す
+	float minDistance = FLT_MAX;
+	DirectX::XMFLOAT3 nearestPolePos = position_;
+
+	for (const auto& pole : poles) {
+		if (!pole) continue;
+
+		DirectX::XMFLOAT3 polePos = pole->GetPosition();
+		float dx = polePos.x - position_.x;
+		float dz = polePos.z - position_.z;
+		float horizontalDistance = sqrtf(dx * dx + dz * dz);
+
+		if (horizontalDistance < minDistance) {
+			minDistance = horizontalDistance;
+			nearestPolePos = polePos;
+		}
+	}
+
+	// 最も近い電柱からプレイヤーに向かう方向を計算
+	float knockbackDx = position_.x - nearestPolePos.x;
+	float knockbackDz = position_.z - nearestPolePos.z;
+	float knockbackDist = sqrtf(knockbackDx * knockbackDx + knockbackDz * knockbackDz);
+
+	if (knockbackDist > 0.001f) {
+		// 正規化して方向を計算
+		knockbackDx /= knockbackDist;
+		knockbackDz /= knockbackDist;
+
+		// 電柱から確実に離す（KNOCKBACK_DISTANCE = 3.0f）
+		position_.x = nearestPolePos.x + knockbackDx * KNOCKBACK_DISTANCE;
+		position_.z = nearestPolePos.z + knockbackDz * KNOCKBACK_DISTANCE;
+
+		// 真上にジャンプ（水平方向の移動なし）
+		velocityY_ = KNOCKBACK_JUMP_FORCE;
+		isGrounded_ = false;
+	}
+}
+
+// 電気状態への変化時に各種状態をリセット
+void Player::ResetToElectricityState()
+{
+	// 速度をリセット
+	velocityY_ = 0.0f;
+	isGrounded_ = true;
+	isDashing_ = false;
+	dashTimeRemaining_ = 0.0f;
+
+	// 電気状態の速度を設定
+	currentSpeed_ = baseSpeed_ * electricSpeedmul;
+
+	// 最も近い電線にスナップ
+	SnapToNearestPowerLine();
+}
+
+// プレイヤーステート変更メソッド
+void Player::ChangeState(Player::State newState)
+{
+	state = newState;
 }

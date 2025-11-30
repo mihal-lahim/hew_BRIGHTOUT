@@ -52,6 +52,7 @@ void Map::Draw() const
 	for (const auto& tile : m_GroundTiles) {
 		XMMATRIX mtxScale = XMMatrixScaling(tile.width, 0.1f, tile.depth); // 地面は薄く
 		XMMATRIX mtxTrans = XMMatrixTranslation(tile.position.x, tile.position.y, tile.position.z);
+
 		XMMATRIX world = mtxScale * mtxTrans;
 		Cube_Draw(tile.textureId, world);
 	}

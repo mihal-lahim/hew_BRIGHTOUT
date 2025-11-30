@@ -1,5 +1,5 @@
-/////////////////////////////
-// player.h[ƒvƒŒƒCƒ„[ƒNƒ‰ƒX]
+ï»¿/////////////////////////////
+// player.h[ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¯ãƒ©ã‚¹]
 //Author : hiroshi kasiwagi
 //Date :2025/11/27
 ////////////////////////////////
@@ -21,53 +21,57 @@ class Camera; // forward declaration for getter
 class Player
 {
 private:
-    // ƒ‚ƒfƒ‹iƒIƒvƒVƒ‡ƒ“AŠO•”‚ÅŠÇ—‚³‚ê‚éƒ|ƒCƒ“ƒ^j
+    // ãƒ¢ãƒ‡ãƒ«ï¼ˆã‚ªãƒ—ã‚·ãƒ§ãƒ³ã€å¤–éƒ¨ã§ç®¡ç†ã•ã‚Œã‚‹ãƒã‚¤ãƒ³ã‚¿ï¼‰
     struct MODEL* model_ = nullptr;
-    //“d‹Có‘Ô—pƒ‚ƒfƒ‹
+    //é›»æ°—çŠ¶æ…‹ç”¨ãƒ¢ãƒ‡ãƒ«
     struct MODEL* electricModel_ = nullptr;
 
-    // ƒRƒ“ƒgƒ[ƒ‰i”ñŠ—LAŠO•”‚Åì¬‚µ‚Ä“n‚·j
+    // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ï¼ˆéæ‰€æœ‰ã€å¤–éƒ¨ã§ä½œæˆã—ã¦æ¸¡ã™ï¼‰
     Controller* controller_ = nullptr;
 
-    // ƒJƒƒ‰iƒvƒŒƒCƒ„[‚ªŠÇ—EŠ—Lj
+    // ã‚«ãƒ¡ãƒ©ï¼ˆãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç®¡ç†ãƒ»æ‰€æœ‰ï¼‰
     std::unique_ptr<TopDownCamera> camera_;
 
-    //ˆÊ’u‚ÆŒü‚«
+    //ä½ç½®ã¨å‘ã
     DirectX::XMFLOAT3 position_{};
     DirectX::XMFLOAT3 direction_{ 0.0f,0.0f,1.0f };
 
-    //‘Ì—Í
+    //ä½“åŠ›
     int health_ = 100;
     int maxHealth_ = 100;
 
-    //€–S”»’è
+    //æ­»äº¡åˆ¤å®š
 	bool usePlayer = true;
 
-    // ˆÚ“®‘¬“x
-    float baseSpeed_ = 3.0f; // ’ÊíˆÚ“®‘¬“x (units/sec)
-    float dashMultiplier_ = 2.0f; // ƒ_ƒbƒVƒ…‚Ì”{—¦
+    // ç§»å‹•é€Ÿåº¦
+    float baseSpeed_ = 3.0f; // é€šå¸¸ç§»å‹•é€Ÿåº¦ (units/sec)
+    float dashMultiplier_ = 2.0f; // ãƒ€ãƒƒã‚·ãƒ¥æ™‚ã®å€ç‡
     float currentSpeed_ = 3.0f;
-	float electricSpeedmul = 3.0f; //“d‹Có‘Ô‚Ì‘¬“x”{—¦
+	float electricSpeedmul = 3.0f; //é›»æ°—çŠ¶æ…‹ã®é€Ÿåº¦å€ç‡
 
-    // ƒ_ƒbƒVƒ…ŠÇ—
+    // ãƒ€ãƒƒã‚·ãƒ¥ç®¡ç†
     bool isDashing_ = false;
-    float dashDuration_ = 0.6f; // ƒ_ƒbƒVƒ…Œp‘±ŠÔi•bj
+    float dashDuration_ = 0.6f; // ãƒ€ãƒƒã‚·ãƒ¥ç¶™ç¶šæ™‚é–“ï¼ˆç§’ï¼‰
     float dashTimeRemaining_ = 0.0f;
 
-    //ƒvƒŒƒCƒ„[‚ÌƒXƒe[ƒg
+    //ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ã‚¹ãƒ†ãƒ¼ãƒˆ
     enum class State {
         HUMAN,
         ELECTRICITY,
     } state = State::HUMAN;
 
-    // Õ“Ë”»’è—pAABB‚ÌƒTƒCƒYiƒ[ƒJƒ‹‹óŠÔj
-    DirectX::XMFLOAT3 aabbHalfSize{ 0.5f, 1.0f, 0.5f }; // •1mA‚‚³2mA‰œs1m
+    // è¡çªåˆ¤å®šç”¨AABBã®ã‚µã‚¤ã‚ºï¼ˆãƒ­ãƒ¼ã‚«ãƒ«ç©ºé–“ï¼‰
+    DirectX::XMFLOAT3 aabbHalfSize{ 0.5f, 1.0f, 0.5f }; // å¹…1mã€é«˜ã•2mã€å¥¥è¡Œ1m
 
-	// d—ÍŠÖ˜A
-	float velocityY_ = 0.0f; // Y²‘¬“xi‰”’¼•ûŒüj
-	bool isGrounded_ = false; // ’n–Ê‚ÉÚ‚µ‚Ä‚¢‚é‚©‚Ç‚¤‚©
-	static constexpr float GRAVITY = 9.8f; // d—Í‰Á‘¬“x (units/sec^2)
-	static constexpr float GROUND_LEVEL = 0.0f; // ’n–Ê‚Ì‚‚³
+	// é‡åŠ›é–¢é€£
+	float velocityY_ = 0.0f; // Yè»¸é€Ÿåº¦ï¼ˆé‰›ç›´æ–¹å‘ï¼‰
+	bool isGrounded_ = false; // åœ°é¢ã«æ¥ã—ã¦ã„ã‚‹ã‹ã©ã†ã‹
+	static constexpr float GRAVITY = 9.8f; // é‡åŠ›åŠ é€Ÿåº¦ (units/sec^2)
+	static constexpr float GROUND_LEVEL = 0.0f; // åœ°é¢ã®é«˜ã•
+
+	// è¡çªåˆ¤å®šã‚¹ã‚­ãƒƒãƒ—æ™‚é–“ç®¡ç†
+	float skipCollisionTimer_ = 0.0f; // è¡çªåˆ¤å®šã‚¹ã‚­ãƒƒãƒ—æ™‚é–“
+	static constexpr float SKIP_COLLISION_DURATION = 0.2f; // è¡çªåˆ¤å®šã‚’ã‚¹ã‚­ãƒƒãƒ—ã™ã‚‹æ™‚é–“ï¼ˆç§’ï¼‰
 
 public:
  Player();
@@ -76,69 +80,89 @@ public:
 
  Player(MODEL* model, MODEL* electricModel, const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
 
- // –ˆƒtƒŒ[ƒ€XViŒo‰ßŠÔ‚Í•bj
+ // æ¯ãƒ•ãƒ¬ãƒ¼ãƒ æ›´æ–°ï¼ˆçµŒéæ™‚é–“ã¯ç§’ï¼‰
  void Update(double elapsedSec);
 
- // ˆÚ“®F•ûŒü‚Í³‹K‰»‚³‚ê‚Ä‚¢‚é‚±‚Æ‚ğ‘z’è
+ // ç§»å‹•ï¼šæ–¹å‘ã¯æ­£è¦åŒ–ã•ã‚Œã¦ã„ã‚‹ã“ã¨ã‚’æƒ³å®š
  void Move(const DirectX::XMFLOAT3& dir, double elapsedSec);
 
- // •`‰æ
+ // æç”»
  void Draw();
 
- // ƒ_ƒbƒVƒ…ŠJn/I—¹
+ // ãƒ€ãƒƒã‚·ãƒ¥é–‹å§‹/çµ‚äº†
  void StartDash();
  void StopDash();
 
- // ƒ_ƒ[ƒW/‰ñ•œ
+ // ãƒ€ãƒ¡ãƒ¼ã‚¸/å›å¾©
  void TakeDamage(int amount);
  void Heal(int amount);
 
- // ƒRƒ“ƒgƒ[ƒ‰/ƒJƒƒ‰ŠÇ—
+ // ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©/ã‚«ãƒ¡ãƒ©ç®¡ç†
  void SetController(Controller* controller);
  Controller* GetController() const;
 
- // ƒJƒƒ‰‚ğ¶¬itarget ‚Ì y ¬•ª‚ğ‚‚³‚Æ‰ğßj
+ // ã‚«ãƒ¡ãƒ©ã‚’ç”Ÿæˆï¼ˆtarget ã® y æˆåˆ†ã‚’é«˜ã•ã¨è§£é‡ˆï¼‰
  void CreateCamera(const DirectX::XMFLOAT3& target);
  Camera* GetCamera() const; // return base Camera pointer for external use
 
- //ˆÊ’uæ“¾iƒJƒƒ‰“™‚ªQÆ‚·‚é‚½‚ß‚ÌƒAƒNƒZƒTj
+ //ä½ç½®å–å¾—ï¼ˆã‚«ãƒ¡ãƒ©ç­‰ãŒå‚ç…§ã™ã‚‹ãŸã‚ã®ã‚¢ã‚¯ã‚»ã‚µï¼‰
  const DirectX::XMFLOAT3& GetPosition() const { return position_; }
 
- //‘Ì—Íæ“¾
+ //ä½“åŠ›å–å¾—
  int GetHealth() const { return health_; }
  int GetMaxHealth() const { return maxHealth_; }
 
- //•ûŒü/‘¬“xİ’è
+ //æ–¹å‘/é€Ÿåº¦è¨­å®š
  void SetDirection(const DirectX::XMFLOAT3& dir) { direction_ = dir; }
  DirectX::XMFLOAT3 GetDirection() const { return direction_; }
  void SetBaseSpeed(float speed) { baseSpeed_ = speed; if (!isDashing_) currentSpeed_ = speed; }
 
- // AABB ƒ`ƒFƒbƒN—pæ“¾
+ // AABB ãƒã‚§ãƒƒã‚¯ç”¨å–å¾—
  AABB GetAABB() const;
 
- //€–S”»’è
+ //æ­»äº¡åˆ¤å®š
  bool IsAlive() const { return health_ > 0 && usePlayer; }
 
- // ƒvƒŒƒCƒ„[ƒXƒe[ƒg•ÏX
- void ChangeState(Player::State newState) { state = newState; }
+ // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚¹ãƒ†ãƒ¼ãƒˆå¤‰æ›´
+ void ChangeState(Player::State newState);
 
  Player::State GetState() const { return state; }
 
-void SetElectricModel(MODEL* electricModel) { electricModel_ = electricModel; }
+ void SetElectricModel(MODEL* electricModel) { electricModel_ = electricModel; }
 
-// Õ“Ë”»’è
-bool IsCollidingWith(const AABB& other) const { return GetAABB().IsOverlap(other); }
+ // è¡çªåˆ¤å®š
+ bool IsCollidingWith(const AABB& other) const { return GetAABB().IsOverlap(other); }
 
-// ƒWƒƒƒ“ƒvˆ—
-void Jump(float jumpForce = 5.0f);
-bool IsGrounded() const { return isGrounded_; }
+ // ã‚¸ãƒ£ãƒ³ãƒ—å‡¦ç†
+ void Jump(float jumpForce = 5.0f);
+ bool IsGrounded() const { return isGrounded_; }
+
+ // é›»æŸ±å‘¨è¾ºæ¤œå‡ºï¼ˆé›»æ°—çŠ¶æ…‹ã¸ã®å¤‰èº«å¯èƒ½åˆ¤å®šï¼‰
+ bool IsNearPole() const;
+ 
+ // é›»ç·šã¸ã®è‡ªå‹•ã‚¹ãƒŠãƒƒãƒ—ï¼ˆé›»æ°—çŠ¶æ…‹ã§ç§»å‹•ï¼‰
+ void SnapToNearestPowerLine();
+ 
+ // é›»æ°—çŠ¶æ…‹ã‹ã‚‰äººé–“ã«å¤‰åŒ–ã™ã‚‹éš›ã€é›»æŸ±ã‹ã‚‰è·³ã­è¿”ã™
+ void KnockbackFromPole();
 
 private:
-    // Õ“Ë‰ğŒˆƒwƒ‹ƒp[
+    // è¡çªè§£æ±ºãƒ˜ãƒ«ãƒ‘ãƒ¼
     void ResolveCollisions(DirectX::XMFLOAT3& newPos, double elapsedSec);
-	//AABBæ“¾ƒwƒ‹ƒp[
-	AABB GetAABBAt(const DirectX::XMFLOAT3& pos) const;
+    //AABBå–å¾—ãƒ˜ãƒ«ãƒ‘ãƒ¼
+    AABB GetAABBAt(const DirectX::XMFLOAT3& pos) const;
 
+    // é›»æ°—çŠ¶æ…‹å¤‰åŒ–æ™‚ã®ãƒªã‚»ãƒƒãƒˆå‡¦ç†
+    void ResetToElectricityState();
+
+    // é›»æŸ±æ£€æµ‹ç”¨ã®å®šæ•°
+    static constexpr float POLE_DETECTION_RADIUS = 3.0f;  
+    static constexpr float POWER_LINE_SNAP_DISTANCE = 2.0f;
+    
+    // é›»æ°—çŠ¶æ…‹ã‹ã‚‰å¤‰åŒ–æ™‚ã®è·³ã­è¿”ã—å®šæ•°
+    static constexpr float KNOCKBACK_DISTANCE = 3.0f;      // é›»æŸ±ã‹ã‚‰è·³ã­è¿”ã™è·é›¢ï¼ˆãƒ¡ãƒ¼ãƒˆãƒ«ï¼‰
+    static constexpr float KNOCKBACK_JUMP_FORCE = 8.0f;    // è·³ã­è¿”ã—æ™‚ã®ä¸Šæ˜‡åˆé€Ÿåº¦
+    static constexpr float KNOCKBACK_HORIZONTAL_SPEED = 5.0f; // æ°´å¹³æ–¹å‘ã®è·³ã­è¿”ã—é€Ÿåº¦
 
 };
 #endif // !PLAYER_H

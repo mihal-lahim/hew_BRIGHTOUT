@@ -147,6 +147,7 @@ void Cube_Draw(const int textrue, const XMMATRIX& mtxWorld)
 
 	//テクスチャの設定
 	Texture_SetTexture(textrue);
+	
 
 	// マテリアルカラーの設定
 	Shader3d_SetMaterialDiffuse({ 1.0f,1.0f,1.0f,1.0f });
