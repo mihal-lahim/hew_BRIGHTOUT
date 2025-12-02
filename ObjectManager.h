@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "GameObject.h"
+#include "debug_console.h"
 
 class ObjectManager
 {
@@ -25,6 +26,22 @@ public:
     // ゲームオブジェクトを追加するメソッド
     void AddGameObject(std::unique_ptr<GameObject> obj)
     {
+        if (!obj) return;
+        
+        // デバッグログ出力
+        const char* tagName = "Unknown";
+        switch (obj->GetTag()) {
+            case GameObjectTag::POLE: tagName = "Pole"; break;
+            case GameObjectTag::POWER_LINE: tagName = "PowerLine"; break;
+            case GameObjectTag::HOUSE: tagName = "House"; break;
+            case GameObjectTag::ITEM_GENERATOR: tagName = "ItemGenerator"; break;
+            case GameObjectTag::CHARGING_SPOT: tagName = "ChargingSpot"; break;
+            default: tagName = "Unknown"; break;
+        }
+        
+        DEBUG_LOGF("[ObjectManager] Added object: %s (Total: %zu)", 
+            tagName, m_GameObjects.size() + 1);
+        
         m_GameObjects.push_back(std::move(obj));
     }
 

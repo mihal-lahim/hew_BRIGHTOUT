@@ -1,6 +1,7 @@
 #include "house.h"
 #include "player.h"
 #include "model.h"
+#include "debug_console.h"
 #include <cmath>
 
 House::House(const XMFLOAT3& pos, MODEL* model, float maxElectricity)
@@ -85,4 +86,7 @@ void House::ReceiveElectricity(float amount)
     if (m_electricity > m_maxElectricity) {
         m_electricity = m_maxElectricity;
 	}
+    
+    // デバッグログ出力
+    //DEBUG_LOGF("[House] Received electricity: +%.1f (Current: %.1f/%.1f)",amount, m_electricity, m_maxElectricity);
 }

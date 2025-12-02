@@ -142,6 +142,7 @@
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="button_hint_ui.cpp" />
     <ClCompile Include="camera_manager.cpp" />
+    <ClCompile Include="ChargingSpot.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="controller.cpp" />
     <ClCompile Include="cube.cpp" />
@@ -183,6 +184,7 @@
     <ClCompile Include="title.cpp" />
     <ClCompile Include="top_down_camera.cpp" />
     <ClCompile Include="UI_Charge.cpp" />
+    <ClCompile Include="UI_house.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -191,11 +193,13 @@
     <ClInclude Include="button_hint_ui.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camera_manager.h" />
+    <ClInclude Include="ChargingSpot.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="controller.h" />
     <ClInclude Include="cube.h" />
     <ClInclude Include="DebugAABB.h" />
     <ClInclude Include="debug_camera.h" />
+    <ClInclude Include="debug_console.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
@@ -232,6 +236,7 @@
     <ClInclude Include="top_down_camera.h" />
     <ClInclude Include="UI.h" />
     <ClInclude Include="UI_Charge.h" />
+    <ClInclude Include="UI_house.h" />
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>

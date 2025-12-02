@@ -19,6 +19,7 @@
 #include <DirectXMath.h>
 #include "controller.h"
 #include "debug_ostream.h"
+#include "debug_console.h"
 #include "player.h"
 #include "key_logger.h"
 #include "UI_Charge.h"
@@ -32,6 +33,9 @@
 #include "DebugAABB.h"
 #include "house.h"
 #include "button_hint_ui.h"
+#include "ChargingSpot.h"
+#include "UI_house.h"
+#include "scene.h"
 #include <array>
 #include <string>
 #include <cstdio>
@@ -58,6 +62,8 @@ static int g_playerCount = 1;
 
 // UI: チャージゲージ（現在は単一インスタンス）
 static UI_Charge* g_uiCharge = nullptr;
+// UI: ハウス状態表示
+static UIHouse* g_uiHouse = nullptr;
 // プレイヤーの体力表示用 DebugText
 static hal::DebugText* g_debugText = nullptr;
 
@@ -79,6 +85,10 @@ void Game_SetPlayerCount(int count)
 //============================================================================
 void Game_Initialize()
 {
+	// デバッグコンソールの初期化
+	hal::DebugConsole::GetInstance().Initialize(true);
+	hal::DebugConsole::GetInstance().Success("=== Game Initialize Started ===");
+
 	Game_SetPlayerCount(1);
 
 
@@ -101,42 +111,42 @@ void Game_Initialize()
 	int poleID = 0;
 
 	auto pole1 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(-10.0f, 0.0f, 0.0f),
+		DirectX::XMFLOAT3(-20.0f, 0.0f, -20.0f),
 		4.0f, 0.2f
 	);
 	pole1->SetPoleID(poleID++);
 	g_ObjectManager.AddGameObject(std::move(pole1));
 
 	auto pole2 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(10.0f, 0.0f, 0.0f),
+		DirectX::XMFLOAT3(20.0f, 0.0f, -20.0f),
 		4.0f, 0.2f
 	);
 	pole2->SetPoleID(poleID++);
 	g_ObjectManager.AddGameObject(std::move(pole2));
 
 	auto pole3 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(0.0f, 0.0f, -10.0f),
+		DirectX::XMFLOAT3(-20.0f, 0.0f, 20.0f),
 		4.0f, 0.2f
 	);
 	pole3->SetPoleID(poleID++);
 	g_ObjectManager.AddGameObject(std::move(pole3));
 
 	auto pole4 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(0.0f, 0.0f, 10.0f),
+		DirectX::XMFLOAT3(20.0f, 0.0f, 20.0f),
 		4.0f, 0.2f
 	);
 	pole4->SetPoleID(poleID++);
 	g_ObjectManager.AddGameObject(std::move(pole4));
 
 	auto pole5 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(-10.0f, 0.0f, 10.0f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, -20.0f),
 		4.0f, 0.2f
 	);
 	pole5->SetPoleID(poleID++);
 	g_ObjectManager.AddGameObject(std::move(pole5));
 
 	auto pole6 = std::make_unique<Pole>(
-		DirectX::XMFLOAT3(10.0f, 0.0f, 10.0f),
+		DirectX::XMFLOAT3(0.0f, 0.0f, 20.0f),
 		4.0f, 0.2f
 	);
 	pole6->SetPoleID(poleID++);
@@ -147,14 +157,14 @@ void Game_Initialize()
 
 	// ハウスを ObjectManager に追加
 	auto house1 = std::make_unique<House>(
-		DirectX::XMFLOAT3(-5.0f, 0.0f, -5.0f),
+		DirectX::XMFLOAT3(-15.0f, 0.0f, -15.0f),
 		g_houseModel,
 		100.0f  // 最大電気量
 	);
 	g_ObjectManager.AddGameObject(std::move(house1));
 
 	auto house2 = std::make_unique<House>(
-		DirectX::XMFLOAT3(5.0f, 0.0f, 5.0f),
+		DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f),
 		g_houseModel,
 		100.0f
 	);
@@ -164,7 +174,7 @@ void Game_Initialize()
 	int generatorID = 0;
 
 	auto generator1 = std::make_unique<ItemGeneratorObject>(
-		DirectX::XMFLOAT3(-8.0f, 1.0f, -8.0f),
+		DirectX::XMFLOAT3(-15.0f, 1.0f, 0.0f),
 		5.0f,   // スポーン範囲
 		2.0f    // スポーン間隔
 	);
@@ -172,7 +182,7 @@ void Game_Initialize()
 	g_ObjectManager.AddGameObject(std::move(generator1));
 
 	auto generator2 = std::make_unique<ItemGeneratorObject>(
-		DirectX::XMFLOAT3(8.0f, 1.0f, -8.0f),
+		DirectX::XMFLOAT3(15.0f, 1.0f, 0.0f),
 		5.0f,
 		2.0f
 	);
@@ -180,7 +190,7 @@ void Game_Initialize()
 	g_ObjectManager.AddGameObject(std::move(generator2));
 
 	auto generator3 = std::make_unique<ItemGeneratorObject>(
-		DirectX::XMFLOAT3(-8.0f, 1.0f, 8.0f),
+		DirectX::XMFLOAT3(0.0f, 1.0f, -15.0f),
 		5.0f,
 		2.0f
 	);
@@ -188,12 +198,27 @@ void Game_Initialize()
 	g_ObjectManager.AddGameObject(std::move(generator3));
 
 	auto generator4 = std::make_unique<ItemGeneratorObject>(
-		DirectX::XMFLOAT3(8.0f, 1.0f, 8.0f),
+		DirectX::XMFLOAT3(0.0f, 1.0f, 15.0f),
 		5.0f,
 		2.0f
 	);
 	generator4->SetGeneratorID(generatorID++);
 	g_ObjectManager.AddGameObject(std::move(generator4));
+
+	// 充電スポットを ObjectManager に追加
+	auto chargingSpot1 = std::make_unique<ChargingSpot>(
+		DirectX::XMFLOAT3(-25.0f, 0.5f, 0.0f),
+		5.0f,   // 充電範囲（半径）
+		20.0f   // 1秒あたりの回復量
+	);
+	g_ObjectManager.AddGameObject(std::move(chargingSpot1));
+
+	auto chargingSpot2 = std::make_unique<ChargingSpot>(
+		DirectX::XMFLOAT3(25.0f, 0.5f, 0.0f),
+		5.0f,
+		20.0f
+	);
+	g_ObjectManager.AddGameObject(std::move(chargingSpot2));
 
 	// コントローラーを動的確保し、各スロットごとにコンストラクタで初期化
 	for (int i = 0; i < 3; ++i) {
@@ -242,6 +267,11 @@ void Game_Initialize()
 	g_uiCharge->Initialize();
 	UIManager::Add(g_uiCharge);
 
+	// UI ハウス状態表示の初期化
+	g_uiHouse = new UIHouse();
+	g_uiHouse->Initialize();
+	UIManager::Add(g_uiHouse);
+
 	// UI 用のグローバルプレイヤーポインタを設定
 	g_player = g_players[0];
 
@@ -272,6 +302,13 @@ void Game_Finalize()
 		g_uiCharge = nullptr;
 	}
 
+	// UI ハウス状態表示の終了化
+	if (g_uiHouse) {
+		UIManager::Remove(g_uiHouse);
+		delete g_uiHouse;
+		g_uiHouse = nullptr;
+	}
+
 	// アイテムジェネレーターの終了処理
 	if (g_itemGenerator) {
 		delete g_itemGenerator;
@@ -287,14 +324,14 @@ void Game_Finalize()
 	// プレイヤーを削除
 	for (int i = 0; i < 3; ++i) {
 		if (g_players[i]) {
-			if (g_player == g_players[i]) g_player = nullptr; // グローバルと一致する場合はクリア
+			if (g_player == g_players[i]) g_player = nullptr;
 			delete g_players[i];
 			g_players[i] = nullptr;
 		}
 	}
 
 	// コントローラーを解放（スレッド停止・Join を行う）
-	for (int i = 0; i < 3; ++i) {
+for (int i = 0; i < 3; ++i) {
 		if (g_controllers[i]) {
 			// 実行中のスレッドがあれば停止してから join
 			g_controllers[i]->Stop();
@@ -306,6 +343,10 @@ void Game_Finalize()
 
 	// グローバルプレイヤーポインタをリセット
 	g_player = nullptr;
+
+	// デバッグコンソールのシャットダウン
+	hal::DebugConsole::GetInstance().Success("=== Game Finalized ===");
+	hal::DebugConsole::GetInstance().Shutdown();
 }
 
 static double keika_time = 0.0;
@@ -314,14 +355,14 @@ void Game_Update(double elapsed_time)
 {
 	keika_time += elapsed_time;
 
-	// キーボードのトリガー状態を更新
-	KeyLogger_Update();
+	//// キーボードのトリガー状態を更新
+	//KeyLogger_Update();
 
 	// コントローラーを更新
 	for (int i = 0; i < 3; ++i) if (g_controllers[i]) g_controllers[i]->Update();
 
-	// カメラ管理
-	// Tabでデバッグカメラと player0 カメラをトグル
+	// カメラ管理 - キーボードのみで操作
+	// TAB キーでデバッグカメラと player0 カメラをトグル
 	if (KeyLogger_IsTrigger(KK_TAB)) {
 		Camera* current = g_camMgr.GetActive();
 		if (current == &g_debugCamera) {
@@ -333,19 +374,11 @@ void Game_Update(double elapsed_time)
 			g_camMgr.SetActiveByName("debug");
 		}
 	}
-	else {
-		// コントローラーの X ボタンでカメラを順次切替
-		if (g_controllers[0] && g_controllers[0]->WasPressed(Controller::BUTTON_X)) {
-			g_camMgr.Next();
-		}
-		else {
-			for (int i = 1; i < 3; ++i) {
-				if (g_controllers[i] && g_controllers[i]->WasPressed(Controller::BUTTON_X)) { g_camMgr.Next(); break; }
-			}
-		}
-	}
 
-	g_camMgr.UpdateActive(elapsed_time);
+	// C キーでカメラを順次切り替え
+	if (KeyLogger_IsTrigger(KK_C)) {
+		g_camMgr.Next();
+	}
 
 	Fade_Update(elapsed_time);
 	Grid_Update(elapsed_time);
@@ -372,27 +405,191 @@ void Game_Update(double elapsed_time)
 		g_buttonHintUI->Update(g_players[0], elapsed_time);
 	}
 
-	// ハウスへの電気供給（最も近いハウスへ）
-	// Yボタンで供給開始、再度押すと供給停止
+	// ハウスへの電気供給
+	// Yボタンを押している間、継続的に給電
 	if (g_players[0] && g_controllers[0]) {
 		House* nearestHouse = g_players[0]->GetNearestHouse();
 		
-		if (g_controllers[0]->WasPressed(Controller::BUTTON_Y)) {
+		// Yボタンを押している間は給電を継続
+		if (g_controllers[0]->IsDown(Controller::BUTTON_Y)) {
+			if (nearestHouse) {
+				// ハウスが復旧していない場合のみ給電
+				if (!nearestHouse->IsRepaired()) {
+					// ハウスが範囲内なら給電を開始または継続
+					if (!g_players[0]->IsSupplyingElectricity()) {
+						g_players[0]->StartSupplyingElectricity(nearestHouse);
+					}
+					
+					// 供給中なら継続的に電気を転送
+					if (g_players[0]->IsSupplyingElectricity()) {
+						House* supplyingHouse = g_players[0]->GetSupplyingHouse();
+						if (supplyingHouse) {
+							// プレイヤーが体力不足の場合は供給を停止
+							if (g_players[0]->GetHealth() <= 0.0f) {
+								g_players[0]->StopSupplyingElectricity();
+							} else {
+								g_players[0]->TransferElectricityToHouse(supplyingHouse, elapsed_time);
+							}
+						}
+					}
+				} else {
+					// ハウスが既に復旧している場合は給電を停止
+					if (g_players[0]->IsSupplyingElectricity()) {
+						g_players[0]->StopSupplyingElectricity();
+					}
+				}
+			}
+		} else {
+			// ボタンを離したら給電を停止
 			if (g_players[0]->IsSupplyingElectricity()) {
-				// 供給中なら停止
 				g_players[0]->StopSupplyingElectricity();
-			} else if (nearestHouse) {
-				// 供給中でなく、ハウスが範囲内なら開始
-				g_players[0]->StartSupplyingElectricity(nearestHouse);
 			}
 		}
+	}
 
-		// 供給中なら継続的に電気を転送
-		if (g_players[0]->IsSupplyingElectricity()) {
-			House* supplyingHouse = g_players[0]->GetSupplyingHouse();
-			if (supplyingHouse) {
-				g_players[0]->TransferElectricityToHouse(supplyingHouse, elapsed_time);
+	// 充電スポットでの体力回復
+	// LEFT_SHOULDER ボタン（LB）を押している間、充電スポット範囲内で体力を継続回復
+	if (g_players[0] && g_controllers[0]) {
+		const auto& allObjects = g_ObjectManager.GetGameObjects();
+		
+		for (const auto& obj : allObjects) {
+			if (obj->GetTag() == GameObjectTag::CHARGING_SPOT) {
+				ChargingSpot* spot = static_cast<ChargingSpot*>(obj.get());
+				if (!spot) continue;
+
+				// プレイヤーが充電スポット範囲内かチェック
+				if (spot->IsPlayerInRange(g_players[0]->GetPosition())) {
+					spot->SetChargeRate(1.0f); 
+					// LEFT_SHOULDER ボタンを押している間、体力を継続回復
+					if (g_controllers[0]->IsDown(Controller::BUTTON_LEFT_SHOULDER)) {
+						float chargeAmount = spot->GetChargeRate();
+						g_players[0]->Heal(chargeAmount);
+					}
+				}
 			}
+		}
+	}
+
+	// ハウスのリストを更新（毎フレーム）
+	if (g_uiHouse) {
+		std::vector<House*> houses;
+		const auto& allObjects = g_ObjectManager.GetGameObjects();
+		
+		int repaired_count = 0;
+		int total_house_count = 0;
+		
+		for (const auto& obj : allObjects) {
+			if (obj->GetTag() == GameObjectTag::HOUSE) {
+				House* house = static_cast<House*>(obj.get());
+				if (house) {
+					houses.push_back(house);
+					total_house_count++;
+					if (house->IsRepaired()) {
+						repaired_count++;
+					}
+				}
+			}
+		}
+		
+		g_uiHouse->SetHouses(houses);
+		
+		// すべての家が復旧されたらリザルトシーンに遷移
+		if (total_house_count > 0 && repaired_count == total_house_count) {
+			Scene_SetNextScene(SCENE_RESULT);
+		}
+	}
+
+	// === デバッグ表示：毎フレーム重要な状態情報をコンソールに出力 ===
+	static float debugUpdateTimer = 0.0f;
+	debugUpdateTimer += static_cast<float>(elapsed_time);
+	
+	// 0.5秒ごとにコンソールをクリアして更新（見やすくするため）
+	if (debugUpdateTimer >= 0.5f) {
+		debugUpdateTimer = 0.0f;
+		
+		// コンソールをクリア
+		hal::DebugConsole::GetInstance().ClearScreen();
+		
+		// === ヘッダー表示 ===
+		DEBUG_LOG("========== GAME DEBUG CONSOLE ==========");
+		DEBUG_LOGF("Time: %.1f sec", keika_time);
+		DEBUG_LOG("");
+		
+		// プレイヤーの状態
+		if (g_players[0]) {
+			XMFLOAT3 playerPos = g_players[0]->GetPosition();
+			float playerHP = g_players[0]->GetHealth();
+			bool isSupplying = g_players[0]->IsSupplyingElectricity();
+			
+			DEBUG_LOG("--- PLAYER INFO ---");
+			DEBUG_LOGF("Position: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z);
+			DEBUG_LOGF("HP: %.1f / %.1f", playerHP, g_players[0]->GetMaxHealth());
+			DEBUG_LOGF("Supplying: %s", isSupplying ? "YES" : "NO");
+			DEBUG_LOG("");
+		}
+		
+		// ハウスの状態
+		{
+			const auto& allObjects = g_ObjectManager.GetGameObjects();
+			int houseCount = 0;
+			float totalElectricity = 0.0f;
+			int repairedCount = 0;
+			
+			for (const auto& obj : allObjects) {
+				if (obj->GetTag() == GameObjectTag::HOUSE) {
+					House* house = static_cast<House*>(obj.get());
+					if (house) {
+						houseCount++;
+						totalElectricity += house->GetElectricity();
+						if (house->IsRepaired()) repairedCount++;
+					}
+				}
+			}
+			
+			if (houseCount > 0) {
+				DEBUG_LOG("--- HOUSES INFO ---");
+				DEBUG_LOGF("Count: %d", houseCount);
+				DEBUG_LOGF("Total Electricity: %.1f", totalElectricity);
+				DEBUG_LOGF("Repaired: %d / %d", repairedCount, houseCount);
+				
+				// 個別の家の情報
+				int houseIndex = 1;
+				for (const auto& obj : allObjects) {
+					if (obj->GetTag() == GameObjectTag::HOUSE) {
+						House* house = static_cast<House*>(obj.get());
+						if (house) {
+							XMFLOAT3 housePos = house->GetPosition();
+							DEBUG_LOGF("  House%d: %.1f/%.1f (%.1f, %.1f, %.1f) %s",
+								houseIndex++,
+								house->GetElectricity(), house->GetMaxElectricity(),
+								housePos.x, housePos.y, housePos.z,
+								house->IsRepaired() ? "[REPAIRED]" : "");
+						}
+					}
+				}
+				DEBUG_LOG("");
+			}
+		}
+		
+		// オブジェクト統計
+		{
+			const auto& allObjects = g_ObjectManager.GetGameObjects();
+			int poleCount = 0, powerLineCount = 0, generatorCount = 0, chargingSpotCount = 0;
+			
+			for (const auto& obj : allObjects) {
+				switch (obj->GetTag()) {
+					case GameObjectTag::POLE: poleCount++; break;
+					case GameObjectTag::POWER_LINE: powerLineCount++; break;
+					case GameObjectTag::ITEM_GENERATOR: generatorCount++; break;
+					case GameObjectTag::CHARGING_SPOT: chargingSpotCount++; break;
+					default: break;
+				}
+			}
+			
+			DEBUG_LOG("--- SCENE OBJECTS ---");
+			DEBUG_LOGF("Poles: %d | PowerLines: %d", poleCount, powerLineCount);
+			DEBUG_LOGF("ItemGenerators: %d | ChargingSpots: %d", generatorCount, chargingSpotCount);
+			DEBUG_LOG("========================================");
 		}
 	}
 
@@ -490,7 +687,7 @@ void Game_Draw()
 		if (g_debugText && g_players[0]) {
 			g_debugText->Clear();
 			char healthText[64];
-			snprintf(healthText, sizeof(healthText), "HP: %d / %d", g_players[0]->GetHealth(), g_players[0]->GetMaxHealth());
+			snprintf(healthText, sizeof(healthText), "HP: %.1f / %.1f", g_players[0]->GetHealth(), g_players[0]->GetMaxHealth());
 			g_debugText->SetText(healthText, { 1.0f, 1.0f, 1.0f, 1.0f }); // 白色で表示
 			g_debugText->Draw();
 		}

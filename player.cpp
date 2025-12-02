@@ -10,6 +10,7 @@
 #include "Pole.h"
 #include "PowerLine.h"
 #include "house.h"
+#include "debug_console.h"
 
 // 入力反転フラグ（必要に応じて調整）
 static constexpr bool INVERT_LS_X = true; // 左右が反転しているので X を反転
@@ -34,7 +35,7 @@ Player::Player(MODEL* model, MODEL* electricModel, const XMFLOAT3& pos, const XM
 	: model_(model), electricModel_(electricModel), position_(pos), direction_(dir)
 {
 	//体力
-	health_ = maxHealth_ = 100;	
+	health_ = maxHealth_ = 100.0f;	
 	usePlayer = true;
 
 	
@@ -56,6 +57,11 @@ void Player::Update(double elapsedSec)
 	// 衝突判定スキップタイマーの更新
 	if (skipCollisionTimer_ > 0.0f) {
 		skipCollisionTimer_ -= static_cast<float>(elapsedSec);
+	}
+
+	// カメラを更新（右スティックの入力処理を含む）
+	if (camera_) {
+		camera_->Update(elapsedSec);
 	}
 
 	// 電線ダメージ処理：電気状態の間、定期的にダメージを受ける
@@ -292,16 +298,20 @@ void Player::Jump(float jumpForce)
 	}
 }
 
-void Player::TakeDamage(int amount)
+void Player::TakeDamage(float amount)
 {
 	health_ -= amount;
-	if (health_ < 0) health_ = 0;
+	if (health_ < 0.0f) health_ = 0.0f;
+	
+	DEBUG_LOGF("[TakeDamage] Called with amount=%.2f | health_ now=%.1f", amount, health_);
 }
 
-void Player::Heal(int amount)
+void Player::Heal(float amount)
 {
 	health_ += amount;
 	if (health_ > maxHealth_) health_ = maxHealth_;
+	
+	DEBUG_LOGF("[Player] Healed: +%.2f | HP: %.1f/%.1f", amount, health_, maxHealth_);
 }
 
 void Player::SetController(Controller* controller)
@@ -490,6 +500,9 @@ void Player::ChangeState(Player::State newState)
 	// HUMAN状態に戻る場合はタイマーをリセット
 	if (newState == State::HUMAN) {
 		powerLineDamageTimer_ = 0.0f;
+		//DEBUG_LOG("[Player] State changed to: HUMAN");
+	} else if (newState == State::ELECTRICITY) {
+		//DEBUG_LOG("[Player] State changed to: ELECTRICITY");
 	}
 }
 
@@ -498,19 +511,25 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 {
 	if (!house || health_ <= 0) return;
 
-	// 1フレームあたりの供給量（毎秒 10 HP 供給）
+	// 毎秒の固定供給量（ELECTRICITY_TRANSFER_RATE で調整可能）
 	float transferAmount = ELECTRICITY_TRANSFER_RATE * static_cast<float>(elapsedSec);
 	
-	// プレイヤーが持っている電気量の方が少ない場合はそれを上限にする
+	// プレイヤーが持っている体力の方が少ない場合はそれを上限にする
 	if (health_ < transferAmount) {
 		transferAmount = static_cast<float>(health_);
 	}
 
-	// ハウスに電気を供給
+	//// デバッグ情報出力
+	//DEBUG_LOGF("[Transfer] Amount: %.2f | Player HP Before: %.1f", transferAmount, health_);
+
+	// ハウスに電気を供給（体力をそのまま電気に変換）
 	house->ReceiveElectricity(transferAmount);
 	
 	// プレイヤーの体力から差し引く（電気を消費）
-	TakeDamage(static_cast<int>(transferAmount));
+	TakeDamage(transferAmount);
+	
+	//// デバッグ情報出力
+	//DEBUG_LOGF("[Transfer] Player HP After: %.1f", health_);
 }
 
 // 最も近いハウスを取得
@@ -544,6 +563,10 @@ void Player::StartSupplyingElectricity(House* house)
 	if (!house || m_isSupplying) return;
 	m_supplyingHouse = house;
 	m_isSupplying = true;
+
+	// デバッグログ出力
+	DEBUG_LOGF("Player started supplying electricity to house at (%.1f, %.1f, %.1f)", 
+		house->GetPosition().x, house->GetPosition().y, house->GetPosition().z);
 }
 
 // 供給停止
@@ -551,4 +574,7 @@ void Player::StopSupplyingElectricity()
 {
 	m_isSupplying = false;
 	m_supplyingHouse = nullptr;
+
+	// デバッグログ出力
+	//DEBUG_LOG("Player stopped supplying electricity");
 }

@@ -15,6 +15,7 @@ enum class GameObjectTag
     POWER_LINE = 2,
     HOUSE = 3,
     ITEM_GENERATOR = 4,
+    CHARGING_SPOT = 5,
     // 必要に応じてタグを追加
 };
 

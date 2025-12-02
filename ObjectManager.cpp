@@ -5,6 +5,7 @@
 #include "ItemGeneratorObject.h"
 #include "DebugAABB.h"
 #include "house.h"
+#include "debug_console.h"
 #include <algorithm>
 #include <cmath>
 
