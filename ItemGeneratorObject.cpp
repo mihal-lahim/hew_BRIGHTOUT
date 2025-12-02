@@ -13,7 +13,8 @@ ItemGeneratorObject::ItemGeneratorObject(const XMFLOAT3& pos, float spawnRadius,
       m_spawnTimer(0.0),
       m_visualRadius(0.5f)
 {
-    // ランダムシードを初期化
+    SetTag(GameObjectTag::ITEM_GENERATOR);
+    // ワールドシード初期化
     static bool initialized = false;
     if (!initialized) {
         srand(static_cast<unsigned>(time(nullptr)));

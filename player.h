@@ -17,6 +17,7 @@ struct MODEL; // forward declaration for model pointer
 class Controller; // forward declaration
 class TopDownCamera; // forward declaration
 class Camera; // forward declaration for getter
+class House; // forward declaration for house pointer
 
 class Player
 {
@@ -37,8 +38,8 @@ private:
     DirectX::XMFLOAT3 direction_{ 0.0f,0.0f,1.0f };
 
     //体力
-    int health_ = 100;
-    int maxHealth_ = 100;
+    float health_ = 100.0f;
+    float maxHealth_ = 100.0f;
 
     //死亡判定
 	bool usePlayer = true;
@@ -73,6 +74,20 @@ private:
 	float skipCollisionTimer_ = 0.0f; // 衝突判定スキップ時間
 	static constexpr float SKIP_COLLISION_DURATION = 0.2f; // 衝突判定をスキップする時間（秒）
 
+	// 電線ダメージ管理
+	float powerLineDamageTimer_ = 0.0f; // 電線ダメージを与えるまでの時間
+	static constexpr float POWERLINE_DAMAGE_INTERVAL = 1.0f; // ダメージ間隔（秒）
+	static constexpr float POWERLINE_DAMAGE_AMOUNT = 5.0f; // 1回のダメージ量
+
+	// ハウスへの電気供給管理
+	static constexpr float HOUSE_INTERACTION_RADIUS = 5.0f;  // ハウス相互作用距離
+	static constexpr float ELECTRICITY_PER_HP = 1.0f;  // 体力1あたりの電気量（1:1の比率）
+	static constexpr float ELECTRICITY_TRANSFER_RATE = 10.0f;  // 毎秒の固定供給量
+
+	// 電気供給状態
+	class House* m_supplyingHouse = nullptr;  // 現在供給中のハウス
+	bool m_isSupplying = false;                // 供給中フラグ
+
 public:
  Player();
  ~Player();
@@ -94,8 +109,8 @@ public:
  void StopDash();
 
  // ダメージ/回復
- void TakeDamage(int amount);
- void Heal(int amount);
+ void TakeDamage(float amount);
+ void Heal(float amount);
 
  // コントローラ/カメラ管理
  void SetController(Controller* controller);
@@ -109,8 +124,8 @@ public:
  const DirectX::XMFLOAT3& GetPosition() const { return position_; }
 
  //体力取得
- int GetHealth() const { return health_; }
- int GetMaxHealth() const { return maxHealth_; }
+ float GetHealth() const { return health_; }
+ float GetMaxHealth() const { return maxHealth_; }
 
  //方向/速度設定
  void SetDirection(const DirectX::XMFLOAT3& dir) { direction_ = dir; }
@@ -146,6 +161,22 @@ public:
  // 電気状態から人間に変化する際、電柱から跳ね返す
  void KnockbackFromPole();
 
+ // ハウスへの電気供給
+ void TransferElectricityToHouse(class House* house, double elapsedSec);
+
+ // 最も近いハウスを取得
+ class House* GetNearestHouse() const;
+
+ // 供給中かどうかを判定
+ bool IsSupplyingElectricity() const { return m_isSupplying; }
+ 
+ // 供給中のハウスを取得
+ class House* GetSupplyingHouse() const { return m_supplyingHouse; }
+
+ // 供給開始/停止
+ void StartSupplyingElectricity(class House* house);
+ void StopSupplyingElectricity();
+
 private:
     // 衝突解決ヘルパー
     void ResolveCollisions(DirectX::XMFLOAT3& newPos, double elapsedSec);
@@ -159,10 +190,10 @@ private:
     static constexpr float POLE_DETECTION_RADIUS = 3.0f;  
     static constexpr float POWER_LINE_SNAP_DISTANCE = 2.0f;
     
-    // 電気状態から変化時の跳ね返し定数
+    // 電気状態から変化時の跳ね返り定数
     static constexpr float KNOCKBACK_DISTANCE = 3.0f;      // 電柱から跳ね返す距離（メートル）
     static constexpr float KNOCKBACK_JUMP_FORCE = 8.0f;    // 跳ね返し時の上昇初速度
     static constexpr float KNOCKBACK_HORIZONTAL_SPEED = 5.0f; // 水平方向の跳ね返し速度
 
 };
-#endif // !PLAYER_H
+#endif // !PLAYER_H#endif // !PLAYER_H

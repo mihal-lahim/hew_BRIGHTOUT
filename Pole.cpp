@@ -10,6 +10,7 @@ Pole::Pole(const XMFLOAT3& pos, float height, float radius)
       m_rotationSpeed(0.0f),
       m_elapsedTime(0.0)
 {
+    SetTag(GameObjectTag::POLE);
 }
 
 void Pole::Update(double elapsedTime)

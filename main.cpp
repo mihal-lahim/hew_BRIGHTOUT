@@ -78,7 +78,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 
 	//クライアント領域のサイズを持った短形
-	RECT window_rect = { 0,0,1920,1080 };
+	RECT window_rect = { 0,0,1920/2,1080/2 };
 
 	//ウィンドウのスタイル
 	DWORD window_style = WS_EX_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
@@ -121,7 +121,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	Mouse_Initialize(hWnd);
 
 	//マウスのカーソル
-	Mouse_SetVisible(false);
+	Mouse_SetVisible(true);
 
 	// キーロガーの初期化
 	KeyLogger_Initialize();

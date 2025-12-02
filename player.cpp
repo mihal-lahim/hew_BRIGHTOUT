@@ -6,9 +6,11 @@
 #include "controller.h"
 #include "top_down_camera.h"
 #include "map.h"
-#include "ObjectManager.h" // 追加
+#include "ObjectManager.h"
 #include "Pole.h"
 #include "PowerLine.h"
+#include "house.h"
+#include "debug_console.h"
 
 // 入力反転フラグ（必要に応じて調整）
 static constexpr bool INVERT_LS_X = true; // 左右が反転しているので X を反転
@@ -33,7 +35,7 @@ Player::Player(MODEL* model, MODEL* electricModel, const XMFLOAT3& pos, const XM
 	: model_(model), electricModel_(electricModel), position_(pos), direction_(dir)
 {
 	//体力
-	health_ = maxHealth_ = 100;	
+	health_ = maxHealth_ = 100.0f;	
 	usePlayer = true;
 
 	
@@ -42,7 +44,7 @@ Player::Player(MODEL* model, MODEL* electricModel, const XMFLOAT3& pos, const XM
 // 毎フレーム更新（ダッシュ継続時間の管理、入力処理）
 void Player::Update(double elapsedSec)
 {
-	// ダッシュ状態の更新
+	// 1. ダッシュ時間の更新
 	if (isDashing_) {
 		dashTimeRemaining_ -= static_cast<float>(elapsedSec);
 		if (dashTimeRemaining_ <= 0.0f) {
@@ -55,6 +57,20 @@ void Player::Update(double elapsedSec)
 	// 衝突判定スキップタイマーの更新
 	if (skipCollisionTimer_ > 0.0f) {
 		skipCollisionTimer_ -= static_cast<float>(elapsedSec);
+	}
+
+	// カメラを更新（右スティックの入力処理を含む）
+	if (camera_) {
+		camera_->Update(elapsedSec);
+	}
+
+	// 電線ダメージ処理：電気状態の間、定期的にダメージを受ける
+	if (state == State::ELECTRICITY) {
+		powerLineDamageTimer_ -= static_cast<float>(elapsedSec);
+		if (powerLineDamageTimer_ <= 0.0f) {
+			TakeDamage(POWERLINE_DAMAGE_AMOUNT);
+			powerLineDamageTimer_ = POWERLINE_DAMAGE_INTERVAL; // タイマーをリセット
+		}
 	}
 
 	// 1. 入力に基づいて水平方向の移動ベクトルを決定
@@ -116,7 +132,22 @@ void Player::Update(double elapsedSec)
 			health_ = maxHealth_;
 			position_ = XMFLOAT3(0.0f, 15.0f, 0.0f);
 			usePlayer = true;
+			
+			// 状態をHUMANにリセット
 			ChangeState(State::HUMAN);
+			
+			// 移動速度をリセット
+			currentSpeed_ = baseSpeed_;
+			
+			// ダッシュ状態をリセット
+			isDashing_ = false;
+			dashTimeRemaining_ = 0.0f;
+			
+			// その他の状態をリセット
+			velocityY_ = 0.0f;
+			isGrounded_ = false;
+			powerLineDamageTimer_ = 0.0f;
+			skipCollisionTimer_ = 0.0f;
 		}
 		
 	}
@@ -267,16 +298,20 @@ void Player::Jump(float jumpForce)
 	}
 }
 
-void Player::TakeDamage(int amount)
+void Player::TakeDamage(float amount)
 {
 	health_ -= amount;
-	if (health_ < 0) health_ = 0;
+	if (health_ < 0.0f) health_ = 0.0f;
+	
+	DEBUG_LOGF("[TakeDamage] Called with amount=%.2f | health_ now=%.1f", amount, health_);
 }
 
-void Player::Heal(int amount)
+void Player::Heal(float amount)
 {
 	health_ += amount;
 	if (health_ > maxHealth_) health_ = maxHealth_;
+	
+	DEBUG_LOGF("[Player] Healed: +%.2f | HP: %.1f/%.1f", amount, health_, maxHealth_);
 }
 
 void Player::SetController(Controller* controller)
@@ -314,19 +349,22 @@ AABB Player::GetAABB() const
 bool Player::IsNearPole() const
 {
 	extern ObjectManager g_ObjectManager;
-	auto poles = g_ObjectManager.GetAllPoles();
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
 	
-	for (const auto& pole : poles) {
-		if (!pole) continue;
-		
-		DirectX::XMFLOAT3 polePos = pole->GetPosition();
-		float dx = polePos.x - position_.x;
-		float dz = polePos.z - position_.z;
-		// 水平距離のみで判定（高さは無視）
-		float horizontalDistance = sqrtf(dx*dx + dz*dz);
-		
-		if (horizontalDistance <= POLE_DETECTION_RADIUS) {
-			return true;
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POLE) {
+			Pole* pole = static_cast<Pole*>(obj.get());
+			if (!pole) continue;
+			
+			DirectX::XMFLOAT3 polePos = pole->GetPosition();
+			float dx = polePos.x - position_.x;
+			float dz = polePos.z - position_.z;
+			// 水平距離のみで判定（高さは無視）
+			float horizontalDistance = sqrtf(dx*dx + dz*dz);
+			
+			if (horizontalDistance <= POLE_DETECTION_RADIUS) {
+				return true;
+			}
 		}
 	}
 	return false;
@@ -338,39 +376,40 @@ void Player::SnapToNearestPowerLine()
 	if (state != State::ELECTRICITY) return;
 
 	extern ObjectManager g_ObjectManager;
-	auto powerLines = g_ObjectManager.GetAllPowerLines();
-	
-	if (powerLines.empty()) return;
 
 	float minDistance = FLT_MAX;
 	DirectX::XMFLOAT3 snappedPos = position_;
 	bool found = false;
 
 	// すべての電線の中から最も近いポイントを探す
-	for (const auto& line : powerLines) {
-		if (!line) continue;
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POWER_LINE) {
+			PowerLine* line = static_cast<PowerLine*>(obj.get());
+			if (!line) continue;
 
-		// 電線上の最も近いポイントを取得
-		DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
-		
-		float dx = closestPoint.x - position_.x;
-		float dy = closestPoint.y - position_.y;
-		float dz = closestPoint.z - position_.z;
-		
-		// 水平距離と垂直距離を分別
-		float horizontalDist = sqrtf(dx * dx + dz * dz);
-		float verticalDist = fabsf(dy);
-		
-		// 水平距離が範囲内なら、垂直距離に関わらずスナップ対象にする
-		// 水平距離: 2m以内、垂直距離: 5m以内
-		if (horizontalDist <= POWER_LINE_SNAP_DISTANCE && verticalDist <= 5.0f) {
-			// 3次元距離で最も近いものを選ぶ
-			float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+			// 電線上の最も近いポイントを取得
+			DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
 			
-			if (distance < minDistance) {
-				minDistance = distance;
-				snappedPos = closestPoint;
-				found = true;
+			float dx = closestPoint.x - position_.x;
+			float dy = closestPoint.y - position_.y;
+			float dz = closestPoint.z - position_.z;
+			
+			// 水平距離と垂直距離を分別
+			float horizontalDist = sqrtf(dx * dx + dz * dz);
+			float verticalDist = fabsf(dy);
+			
+			// 水平距離が範囲内なら、垂直距離に関わらずスナップ対象にする
+			// 水平距離: 2m以内、垂直距離: 5m以内
+			if (horizontalDist <= POWER_LINE_SNAP_DISTANCE && verticalDist <= 5.0f) {
+				// 3次元距離で最も近いものを選ぶ
+				float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+				
+				if (distance < minDistance) {
+					minDistance = distance;
+					snappedPos = closestPoint;
+					found = true;
+				}
 			}
 		}
 	}
@@ -387,29 +426,32 @@ void Player::SnapToNearestPowerLine()
 void Player::KnockbackFromPole()
 {
 	extern ObjectManager g_ObjectManager;
-	auto poles = g_ObjectManager.GetAllPoles();
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
 	
-	if (poles.empty()) return;
-
-	// 最も近い電柱を探す
+	Pole* nearestPole = nullptr;
 	float minDistance = FLT_MAX;
-	DirectX::XMFLOAT3 nearestPolePos = position_;
+	
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::POLE) {
+			Pole* pole = static_cast<Pole*>(obj.get());
+			if (!pole) continue;
 
-	for (const auto& pole : poles) {
-		if (!pole) continue;
+			DirectX::XMFLOAT3 polePos = pole->GetPosition();
+			float dx = polePos.x - position_.x;
+			float dz = polePos.z - position_.z;
+			float horizontalDistance = sqrtf(dx * dx + dz * dz);
 
-		DirectX::XMFLOAT3 polePos = pole->GetPosition();
-		float dx = polePos.x - position_.x;
-		float dz = polePos.z - position_.z;
-		float horizontalDistance = sqrtf(dx * dx + dz * dz);
-
-		if (horizontalDistance < minDistance) {
-			minDistance = horizontalDistance;
-			nearestPolePos = polePos;
+			if (horizontalDistance < minDistance) {
+				minDistance = horizontalDistance;
+				nearestPole = pole;
+			}
 		}
 	}
 
+	if (!nearestPole) return;
+
 	// 最も近い電柱からプレイヤーに向かう方向を計算
+	DirectX::XMFLOAT3 nearestPolePos = nearestPole->GetPosition();
 	float knockbackDx = position_.x - nearestPolePos.x;
 	float knockbackDz = position_.z - nearestPolePos.z;
 	float knockbackDist = sqrtf(knockbackDx * knockbackDx + knockbackDz * knockbackDz);
@@ -441,12 +483,98 @@ void Player::ResetToElectricityState()
 	// 電気状態の速度を設定
 	currentSpeed_ = baseSpeed_ * electricSpeedmul;
 
-	// 最も近い電線にスナップ
+	// ダメージタイマーをリセット：電気状態に変わった直後はダメージを受けないようにする
+	powerLineDamageTimer_ = POWERLINE_DAMAGE_INTERVAL;
+
+	// 最寄りの電線にスナップ
 	SnapToNearestPowerLine();
 }
 
 // プレイヤーステート変更メソッド
 void Player::ChangeState(Player::State newState)
 {
+	if (state == newState) return; // 状態が変わらない場合は処理しない
+
 	state = newState;
+
+	// HUMAN状態に戻る場合はタイマーをリセット
+	if (newState == State::HUMAN) {
+		powerLineDamageTimer_ = 0.0f;
+		//DEBUG_LOG("[Player] State changed to: HUMAN");
+	} else if (newState == State::ELECTRICITY) {
+		//DEBUG_LOG("[Player] State changed to: ELECTRICITY");
+	}
+}
+
+// ハウスへの電気供給（ボタン操作で呼ばれる）
+void Player::TransferElectricityToHouse(House* house, double elapsedSec)
+{
+	if (!house || health_ <= 0) return;
+
+	// 毎秒の固定供給量（ELECTRICITY_TRANSFER_RATE で調整可能）
+	float transferAmount = ELECTRICITY_TRANSFER_RATE * static_cast<float>(elapsedSec);
+	
+	// プレイヤーが持っている体力の方が少ない場合はそれを上限にする
+	if (health_ < transferAmount) {
+		transferAmount = static_cast<float>(health_);
+	}
+
+	//// デバッグ情報出力
+	//DEBUG_LOGF("[Transfer] Amount: %.2f | Player HP Before: %.1f", transferAmount, health_);
+
+	// ハウスに電気を供給（体力をそのまま電気に変換）
+	house->ReceiveElectricity(transferAmount);
+	
+	// プレイヤーの体力から差し引く（電気を消費）
+	TakeDamage(transferAmount);
+	
+	//// デバッグ情報出力
+	//DEBUG_LOGF("[Transfer] Player HP After: %.1f", health_);
+}
+
+// 最も近いハウスを取得
+class House* Player::GetNearestHouse() const
+{
+	extern ObjectManager g_ObjectManager;
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
+	
+	House* nearestHouse = nullptr;
+	float minDistance = FLT_MAX;
+	
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::HOUSE) {
+			House* house = static_cast<House*>(obj.get());
+			if (!house) continue;
+			
+			float distance = house->GetDistanceToPlayer(position_);
+			
+			if (distance < minDistance && distance <= HOUSE_INTERACTION_RADIUS) {
+				minDistance = distance;
+				nearestHouse = house;
+			}
+		}
+	}
+	return nearestHouse;
+}
+
+// 供給開始
+void Player::StartSupplyingElectricity(House* house)
+{
+	if (!house || m_isSupplying) return;
+	m_supplyingHouse = house;
+	m_isSupplying = true;
+
+	// デバッグログ出力
+	DEBUG_LOGF("Player started supplying electricity to house at (%.1f, %.1f, %.1f)", 
+		house->GetPosition().x, house->GetPosition().y, house->GetPosition().z);
+}
+
+// 供給停止
+void Player::StopSupplyingElectricity()
+{
+	m_isSupplying = false;
+	m_supplyingHouse = nullptr;
+
+	// デバッグログ出力
+	//DEBUG_LOG("Player stopped supplying electricity");
 }

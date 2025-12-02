@@ -140,7 +140,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="button_hint_ui.cpp" />
     <ClCompile Include="camera_manager.cpp" />
+    <ClCompile Include="ChargingSpot.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="controller.cpp" />
     <ClCompile Include="cube.cpp" />
@@ -155,6 +157,7 @@
     <ClCompile Include="game_effect.cpp" />
     <ClCompile Include="game_score.cpp" />
     <ClCompile Include="grid.cpp" />
+    <ClCompile Include="house.cpp" />
     <ClCompile Include="item.cpp" />
     <ClCompile Include="ItemGenerator.cpp" />
     <ClCompile Include="ItemGeneratorObject.cpp" />
@@ -181,18 +184,22 @@
     <ClCompile Include="title.cpp" />
     <ClCompile Include="top_down_camera.cpp" />
     <ClCompile Include="UI_Charge.cpp" />
+    <ClCompile Include="UI_house.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\controller\cont_12\controller.h" />
     <ClInclude Include="Audio.h" />
+    <ClInclude Include="button_hint_ui.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="camera_manager.h" />
+    <ClInclude Include="ChargingSpot.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="controller.h" />
     <ClInclude Include="cube.h" />
     <ClInclude Include="DebugAABB.h" />
     <ClInclude Include="debug_camera.h" />
+    <ClInclude Include="debug_console.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
@@ -202,6 +209,7 @@
     <ClInclude Include="game_effect.h" />
     <ClInclude Include="game_score.h" />
     <ClInclude Include="grid.h" />
+    <ClInclude Include="house.h" />
     <ClInclude Include="item.h" />
     <ClInclude Include="ItemGenerator.h" />
     <ClInclude Include="ItemGeneratorObject.h" />
@@ -228,6 +236,7 @@
     <ClInclude Include="top_down_camera.h" />
     <ClInclude Include="UI.h" />
     <ClInclude Include="UI_Charge.h" />
+    <ClInclude Include="UI_house.h" />
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>
