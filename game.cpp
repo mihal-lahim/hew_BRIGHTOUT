@@ -503,11 +503,11 @@ void Game_Update(double elapsed_time)
 	static float debugUpdateTimer = 0.0f;
 	debugUpdateTimer += static_cast<float>(elapsed_time);
 	
-	// 0.5秒ごとにコンソールをクリアして更新（見やすくするため）
+	// 0.5秒ごとにカーソルをリセットして上書き表示（スクロール履歴は保持）
 	if (debugUpdateTimer >= 0.5f) {
 		debugUpdateTimer = 0.0f;
 		
-		// コンソールをクリア
+		//コンソール画面のクリア
 		hal::DebugConsole::GetInstance().ClearScreen();
 		
 		// === ヘッダー表示 ===
@@ -515,20 +515,33 @@ void Game_Update(double elapsed_time)
 		DEBUG_LOGF("Time: %.1f sec", keika_time);
 		DEBUG_LOG("");
 		
-		// プレイヤーの状態
+		// プレイヤーの詳細情報
 		if (g_players[0]) {
 			XMFLOAT3 playerPos = g_players[0]->GetPosition();
 			float playerHP = g_players[0]->GetHealth();
+			float playerMaxHP = g_players[0]->GetMaxHealth();
 			bool isSupplying = g_players[0]->IsSupplyingElectricity();
+			XMFLOAT3 playerDir = g_players[0]->GetDirection();
+			bool isGrounded = g_players[0]->IsGrounded();
+			bool isNearPole = g_players[0]->IsNearPole();
 			
 			DEBUG_LOG("--- PLAYER INFO ---");
 			DEBUG_LOGF("Position: (%.1f, %.1f, %.1f)", playerPos.x, playerPos.y, playerPos.z);
-			DEBUG_LOGF("HP: %.1f / %.1f", playerHP, g_players[0]->GetMaxHealth());
-			DEBUG_LOGF("Supplying: %s", isSupplying ? "YES" : "NO");
+			DEBUG_LOGF("Direction: (%.2f, %.2f, %.2f)", playerDir.x, playerDir.y, playerDir.z);
+			DEBUG_LOGF("HP: %.1f / %.1f", playerHP, playerMaxHP);
+			DEBUG_LOGF("Grounded: %s | Near Pole: %s", isGrounded ? "YES" : "NO", isNearPole ? "YES" : "NO");
+			DEBUG_LOGF("Supplying Electricity: %s", isSupplying ? "YES" : "NO");
+			if (isSupplying) {
+				House* supplyingHouse = g_players[0]->GetSupplyingHouse();
+				if (supplyingHouse) {
+					XMFLOAT3 housePos = supplyingHouse->GetPosition();
+					DEBUG_LOGF("  -> House at (%.1f, %.1f, %.1f)", housePos.x, housePos.y, housePos.z);
+				}
+			}
 			DEBUG_LOG("");
 		}
 		
-		// ハウスの状態
+		// ハウスの情報
 		{
 			const auto& allObjects = g_ObjectManager.GetGameObjects();
 			int houseCount = 0;

@@ -197,8 +197,8 @@ namespace hal
             
             // 最小サイズと最大サイズを設定
             int minWidth = 80;   // 最小幅
-            int maxWidth = 120;  // 最大幅
-            int minHeight = 10;  // 最小高さ
+            int maxWidth = 200;  // 最大幅
+            int minHeight = 25;  // 最小高さ
             int maxHeight = 40;  // 最大高さ
 
             // カーソル位置に基づいて、必要なサイズを計算

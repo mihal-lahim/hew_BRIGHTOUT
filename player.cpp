@@ -303,7 +303,8 @@ void Player::TakeDamage(float amount)
 	health_ -= amount;
 	if (health_ < 0.0f) health_ = 0.0f;
 	
-	DEBUG_LOGF("[TakeDamage] Called with amount=%.2f | health_ now=%.1f", amount, health_);
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	//DEBUG_LOGF("[TakeDamage] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Damage=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
 }
 
 void Player::Heal(float amount)
@@ -311,7 +312,8 @@ void Player::Heal(float amount)
 	health_ += amount;
 	if (health_ > maxHealth_) health_ = maxHealth_;
 	
-	DEBUG_LOGF("[Player] Healed: +%.2f | HP: %.1f/%.1f", amount, health_, maxHealth_);
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	//DEBUG_LOGF("[Heal] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Healed=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
 }
 
 void Player::SetController(Controller* controller)
@@ -500,9 +502,11 @@ void Player::ChangeState(Player::State newState)
 	// HUMAN状態に戻る場合はタイマーをリセット
 	if (newState == State::HUMAN) {
 		powerLineDamageTimer_ = 0.0f;
-		//DEBUG_LOG("[Player] State changed to: HUMAN");
+		DEBUG_LOGF("[ChangeState] HUMAN | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+			position_.x, position_.y, position_.z, health_, maxHealth_);
 	} else if (newState == State::ELECTRICITY) {
-		//DEBUG_LOG("[Player] State changed to: ELECTRICITY");
+		DEBUG_LOGF("[ChangeState] ELECTRICITY | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+			position_.x, position_.y, position_.z, health_, maxHealth_);
 	}
 }
 
@@ -519,8 +523,7 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 		transferAmount = static_cast<float>(health_);
 	}
 
-	//// デバッグ情報出力
-	//DEBUG_LOGF("[Transfer] Amount: %.2f | Player HP Before: %.1f", transferAmount, health_);
+	
 
 	// ハウスに電気を供給（体力をそのまま電気に変換）
 	house->ReceiveElectricity(transferAmount);
@@ -528,8 +531,6 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 	// プレイヤーの体力から差し引く（電気を消費）
 	TakeDamage(transferAmount);
 	
-	//// デバッグ情報出力
-	//DEBUG_LOGF("[Transfer] Player HP After: %.1f", health_);
 }
 
 // 最も近いハウスを取得
@@ -564,8 +565,9 @@ void Player::StartSupplyingElectricity(House* house)
 	m_supplyingHouse = house;
 	m_isSupplying = true;
 
-	// デバッグログ出力
-	DEBUG_LOGF("Player started supplying electricity to house at (%.1f, %.1f, %.1f)", 
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	DEBUG_LOGF("[StartSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | House=(%.1f, %.1f, %.1f)", 
+		stateName, position_.x, position_.y, position_.z, health_, maxHealth_,
 		house->GetPosition().x, house->GetPosition().y, house->GetPosition().z);
 }
 
@@ -575,6 +577,7 @@ void Player::StopSupplyingElectricity()
 	m_isSupplying = false;
 	m_supplyingHouse = nullptr;
 
-	// デバッグログ出力
-	//DEBUG_LOG("Player stopped supplying electricity");
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	DEBUG_LOGF("[StopSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+		stateName, position_.x, position_.y, position_.z, health_, maxHealth_);
 }
