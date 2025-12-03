@@ -96,7 +96,7 @@ void ItemGeneratorObject::SpawnItem()
 
     XMFLOAT3 itemPos = {
         m_Position.x + randomDistance * std::cos(randomAngle),
-        m_Position.y + 1.0f,  // 少し高めに配置
+        m_Position.y,  // 地面と同じ高さに配置
         m_Position.z + randomDistance * std::sin(randomAngle)
     };
 

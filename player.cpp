@@ -90,7 +90,7 @@ void Player::Update(double elapsedSec)
 				if (IsNearPole()) {
 					ChangeState(State::HUMAN);
 					if (!isDashing_) {
-						currentSpeed_ = baseSpeed_;
+					currentSpeed_ = baseSpeed_;
 					}
 					// ìdíåÇ©ÇÁíµÇÀï‘Ç∑èàóù
 					KnockbackFromPole();
@@ -249,8 +249,8 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
 AABB Player::GetAABBAt(const DirectX::XMFLOAT3& pos) const
 {
     float halfW = aabbHalfSize.x;
-    float height = aabbHalfSize.y * 2.0f; // AABBÇÃçÇÇ≥ÇÕëSçÇ
-    DirectX::XMFLOAT3 min{ pos.x - halfW, pos.y, pos.z - halfW };
+    float height = aabbHalfSize.y * 2.0f; // AABBÇÃçÇÇ≥ÇÕëSëÃ
+    DirectX::XMFLOAT3 min{ pos.x - halfW, pos.y - 0.5f, pos.z - halfW };
     DirectX::XMFLOAT3 max{ pos.x + halfW, pos.y + height, pos.z + halfW };
     return AABB(min, max);
 }

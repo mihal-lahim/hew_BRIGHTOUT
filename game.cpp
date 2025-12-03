@@ -132,81 +132,6 @@ void Game_InitializeControllers()
 }
 
 //============================================================================
-// ハウス作成ヘルパー関数
-//============================================================================
-/**
- * @brief ハウスを作成して ObjectManager に追加
- * @param position ハウスの位置
- * @param scale ハウスのスケール（1.0f = 100%）
- * @param maxElectricity ハウスの最大電気量
- * @param model ハウスモデル（省略時は g_houseModel を使用）
- */
-void CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, struct MODEL* model = nullptr)
-{
-	if (!model) model = g_houseModel;
-	
-	auto house = std::make_unique<House>(
-		position,
-		model,
-		maxElectricity
-	);
-	
-	// スケールを設定
-	house->SetScale(scale);
-	
-	g_ObjectManager.AddGameObject(std::move(house));
-}
-
-//============================================================================
-// 電柱作成ヘルパー関数
-//============================================================================
-/**
- * @brief 電柱を作成して ObjectManager に追加
- * @param position 電柱の位置
- * @param height 電柱の高さ
- * @param radius 電柱の半径
- * @param poleID 電柱の ID
- */
-void CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID)
-{
-	auto pole = std::make_unique<Pole>(position, height, radius);
-	pole->SetPoleID(poleID++);
-	g_ObjectManager.AddGameObject(std::move(pole));
-}
-
-//============================================================================
-// アイテムジェネレータオブジェクト作成ヘルパー関数
-//============================================================================
-/**
- * @brief アイテムジェネレータオブジェクトを作成して ObjectManager に追加
- * @param position ジェネレータの位置
- * @param spawnRadius スポーン範囲（半径）
- * @param spawnInterval スポーン間隔（秒）
- * @param generatorID ジェネレータの ID
- */
-void CreateItemGenerator(const DirectX::XMFLOAT3& position, float spawnRadius, float spawnInterval, int& generatorID)
-{
-	auto generator = std::make_unique<ItemGeneratorObject>(position, spawnRadius, spawnInterval);
-	generator->SetGeneratorID(generatorID++);
-	g_ObjectManager.AddGameObject(std::move(generator));
-}
-
-//============================================================================
-// 充電スポット作成ヘルパー関数
-//============================================================================
-/**
- * @brief 充電スポットを作成して ObjectManager に追加
- * @param position 充電スポットの位置
- * @param chargeRadius 充電範囲（半径）
- * @param chargeRate 1秒あたりの回復量
- */
-void CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate)
-{
-	auto chargingSpot = std::make_unique<ChargingSpot>(position, chargeRadius, chargeRate);
-	g_ObjectManager.AddGameObject(std::move(chargingSpot));
-}
-
-//============================================================================
 // ゲーム初期化
 //============================================================================
 void Game_Initialize()
@@ -224,7 +149,7 @@ void Game_Initialize()
 
 	// デバッグAABB描画の初期化
 	DebugAABB::Initialize(Direct3D_GetDevice(), Direct3D_GetContext());
-	g_pKirby = ModelLoad("model/kirby.fbx", 0.1f, false);
+	g_pKirby = ModelLoad("model/aruhula_aitemu_toreru_ba.fbx", 0.1f, false);
 	g_test = ModelLoad("model/test.fbx", 0.1f, false);
 	g_ball = ModelLoad("model/ball.fbx", 0.1f, false);
 
@@ -233,30 +158,31 @@ void Game_Initialize()
 
 	// 電柱を ObjectManager に追加（ヘルパー関数使用）
 	int poleID = 0;
-	CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
-	CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
-	CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
+
 
 	// 電柱同士を電線で自動接続
 	g_ObjectManager.ConnectNearbyPoles();
 
 	// ハウスを ObjectManager に追加（ヘルパー関数使用）
-	CreateHouse(DirectX::XMFLOAT3(-15.0f, 0.0f, -15.0f), 5.0f, 100.0f);
-	CreateHouse(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), 5.0f, 100.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-15.0f, 0.0f, -15.0f), 5.0f, 100.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), 5.0f, 100.0f);
 
 	// アイテムジェネレーターオブジェクトをフィールドに配置（ヘルパー関数使用）
 	int generatorID = 0;
-	CreateItemGenerator(DirectX::XMFLOAT3(-15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
-	CreateItemGenerator(DirectX::XMFLOAT3(15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
-	CreateItemGenerator(DirectX::XMFLOAT3(0.0f, 1.0f, -15.0f), 5.0f, 2.0f, generatorID);
-	CreateItemGenerator(DirectX::XMFLOAT3(0.0f, 1.0f, 15.0f), 5.0f, 2.0f, generatorID);
+	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(-15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
+	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
+	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(0.0f, 1.0f, -15.0f), 5.0f, 2.0f, generatorID);
+	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(0.0f, 1.0f, 15.0f), 5.0f, 2.0f, generatorID);
 
 	// 充電スポットを ObjectManager に追加（ヘルパー関数使用）
-	CreateChargingSpot(DirectX::XMFLOAT3(-25.0f, 0.5f, 0.0f), 5.0f, 20.0f);
-	CreateChargingSpot(DirectX::XMFLOAT3(25.0f, 0.5f, 0.0f), 5.0f, 20.0f);
+	g_ObjectManager.CreateChargingSpot(DirectX::XMFLOAT3(-25.0f, 0.5f, 0.0f), 5.0f, 20.0f);
+	g_ObjectManager.CreateChargingSpot(DirectX::XMFLOAT3(25.0f, 0.5f, 0.0f), 5.0f, 20.0f);
 
 	// コントローラーを動的確保し、各スロットごとにコンストラクタで初期化
 	for (int i = 0; i < 3; ++i) {

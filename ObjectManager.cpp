@@ -5,6 +5,7 @@
 #include "ItemGeneratorObject.h"
 #include "DebugAABB.h"
 #include "house.h"
+#include "ChargingSpot.h"
 #include "debug_console.h"
 #include <algorithm>
 #include <cmath>
@@ -155,4 +156,37 @@ void ObjectManager::SetDebugAABBEnabled(bool enabled)
 bool ObjectManager::IsDebugAABBEnabled() const
 {
     return m_debugAABBEnabled;
+}
+
+//============================================================================
+// オブジェクト作成ヘルパー関数の実装
+//============================================================================
+
+void ObjectManager::CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, struct MODEL* model)
+{
+    if (!model) return;
+    
+    auto house = std::make_unique<House>(position, model, maxElectricity);
+    house->SetScale(scale);
+    AddGameObject(std::move(house));
+}
+
+void ObjectManager::CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID)
+{
+    auto pole = std::make_unique<Pole>(position, height, radius);
+    pole->SetPoleID(poleID++);
+    AddGameObject(std::move(pole));
+}
+
+void ObjectManager::CreateItemGenerator(const DirectX::XMFLOAT3& position, float spawnRadius, float spawnInterval, int& generatorID)
+{
+    auto generator = std::make_unique<ItemGeneratorObject>(position, spawnRadius, spawnInterval);
+    generator->SetGeneratorID(generatorID++);
+    AddGameObject(std::move(generator));
+}
+
+void ObjectManager::CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate)
+{
+    auto chargingSpot = std::make_unique<ChargingSpot>(position, chargeRadius, chargeRate);
+    AddGameObject(std::move(chargingSpot));
 }

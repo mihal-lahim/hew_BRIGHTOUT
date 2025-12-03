@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <DirectXMath.h>
 #include "GameObject.h"
 #include "debug_console.h"
 
@@ -56,6 +57,12 @@ public:
     void DrawDebugAABBs() const;
     void SetDebugAABBEnabled(bool enabled);
     bool IsDebugAABBEnabled() const;
+
+    // オブジェクト作成ヘルパー関数
+    void CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, struct MODEL* model = nullptr);
+    void CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID);
+    void CreateItemGenerator(const DirectX::XMFLOAT3& position, float spawnRadius, float spawnInterval, int& generatorID);
+    void CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate);
 
 private:
     bool m_debugAABBEnabled = true;
