@@ -132,7 +132,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	ShowWindow(hWnd, nCmdShow);	//ウィンドウ表示
 	UpdateWindow(hWnd);			//ウィンドウの描画の更新
 
-	// 各種初期化
+	// テ平線の初期化
 	if (!Direct3D_Initialize(hWnd))
 	{
 		PostQuitMessage(0);//メッセージを表示
@@ -328,6 +328,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
+
+
+
 
 
 
