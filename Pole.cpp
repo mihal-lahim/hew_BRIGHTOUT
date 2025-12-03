@@ -25,17 +25,22 @@ void Pole::Draw() const
 {
     // モデルがある場合はモデルを描画
     if (m_pModel != nullptr) {
+        XMMATRIX rotation = XMMatrixRotationY(m_Rotation.y);
         XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
-        ModelDraw(m_pModel, translation);
+        XMMATRIX world = rotation * translation;
+        ModelDraw(m_pModel, world);
     } else {
         // モデルがない場合は従来のキューブで描画
         // 電柱を描画（複数のキューブをスタックして表現）
+        
+        // 回転行列の生成
+        XMMATRIX rotation = XMMatrixRotationY(m_Rotation.y);
         
         // 下部：太いベース
         {
             XMMATRIX scale = XMMatrixScaling(m_radius * 1.5f, m_radius, m_radius * 1.5f);
             XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y + m_radius, m_Position.z);
-            XMMATRIX world = scale * translation;
+            XMMATRIX world = scale * rotation * translation;
             Cube_Draw(0, world);
         }
 
@@ -43,7 +48,7 @@ void Pole::Draw() const
         {
             XMMATRIX scale = XMMatrixScaling(m_radius, m_height * 0.8f, m_radius);
             XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y + m_height * 0.5f, m_Position.z);
-            XMMATRIX world = scale * translation;
+            XMMATRIX world = scale * rotation * translation;
             Cube_Draw(0, world);
         }
 
@@ -51,7 +56,7 @@ void Pole::Draw() const
         {
             XMMATRIX scale = XMMatrixScaling(m_radius * 0.8f, m_radius * 2.0f, m_radius * 0.8f);
             XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y + m_height - m_radius, m_Position.z);
-            XMMATRIX world = scale * translation;
+            XMMATRIX world = scale * rotation * translation;
             Cube_Draw(0, world);
         }
     }

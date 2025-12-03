@@ -33,6 +33,9 @@ public:
     // テクスチャID取得
     int GetTextureID() const { return m_textureID; }
 
+    // モデル設定
+    void SetModel(MODEL* model) { m_pModel = model; }
+
 private:
     float m_size;          // 描画サイズ
     bool m_active;         // キャラクターが有効か
@@ -42,4 +45,8 @@ private:
 
     // タイプに応じてテクスチャをロード
     void LoadTextureForType(ItemType type);
+
+    // モデル描画用ヘルパー
+    void DrawWithModel() const;
+    void DrawWithTexture() const;
 };

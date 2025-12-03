@@ -34,10 +34,11 @@ void House::Draw() const
 {
     if (!m_model) return;
 
-    // ハウスの描画（スケール対応）
+    // ハウスの描画（スケール＆回転対応）
     XMMATRIX scale = XMMatrixScaling(m_scale, m_scale, m_scale);
+    XMMATRIX rotation = XMMatrixRotationY(m_Rotation.y);
     XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
-    XMMATRIX world = scale * translation;
+    XMMATRIX world = scale * rotation * translation;
 
     ModelDraw(m_model, world);
 }

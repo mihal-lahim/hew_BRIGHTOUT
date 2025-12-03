@@ -198,8 +198,8 @@ namespace hal
             // 最小サイズと最大サイズを設定
             int minWidth = 80;   // 最小幅
             int maxWidth = 200;  // 最大幅
-            int minHeight = 25;  // 最小高さ
-            int maxHeight = 40;  // 最大高さ
+            int minHeight = 50;  // 最小高さ
+            int maxHeight = 80;  // 最大高さ
 
             // カーソル位置に基づいて、必要なサイズを計算
             int requiredWidth = cursorPos.X + 10;  // 余裕を持たせる

@@ -52,22 +52,24 @@ void ItemGeneratorObject::Update(double elapsedTime)
 
 void ItemGeneratorObject::Draw() const
 {
-    // ジェネレータ本体を表示（小さい立方体）
+    // ジェネレータ本体の描画（回転対応）
     XMMATRIX scale = XMMatrixScaling(m_visualRadius, m_visualRadius, m_visualRadius);
+    XMMATRIX rotation = XMMatrixRotationY(m_Rotation.y);
     XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
-    XMMATRIX world = scale * translation;
+    XMMATRIX world = scale * rotation * translation;
 
-    // ジェネレータを緑色のテクスチャで描画（テクスチャID 4 を使用）
+    // ジェネレータを黄色のテクスチャで描画（テクスチャID 4 を使用）
     Cube_Draw(4, world);
 
-    // スポーン範囲を表示するための外側の円を描画
+    // スポーン範囲を視覚化するための外部の円形描画
     {
         float rangeSize = m_spawnRadius * 0.3f;
         XMMATRIX rangeScale = XMMatrixScaling(rangeSize, 0.1f, rangeSize);
+        XMMATRIX rangeRotation = XMMatrixRotationY(m_Rotation.y);
         XMMATRIX rangeTranslation = XMMatrixTranslation(m_Position.x, m_Position.y + 0.1f, m_Position.z);
-        XMMATRIX rangeWorld = rangeScale * rangeTranslation;
+        XMMATRIX rangeWorld = rangeScale * rangeRotation * rangeTranslation;
 
-        // スポーン範囲を薄い灰色で描画
+        // スポーン範囲を茶色で描画
         Cube_Draw(0, rangeWorld);
     }
 }
