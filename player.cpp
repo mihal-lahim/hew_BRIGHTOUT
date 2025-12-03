@@ -194,7 +194,7 @@ void Player::Update(double elapsedSec)
 // 衝突解決
 void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec)
 {
-    // XZ平面（水平）の移動と衝突
+    // XZ平面（水平）の移動と衝突判定
     XMFLOAT3 newPos = position_;
     newPos.x += desiredMove.x;
     newPos.z += desiredMove.z;
@@ -204,6 +204,11 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
 
     extern ObjectManager g_ObjectManager;
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
+        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        
         if (playerAABB.IsOverlap(obj->GetAABB())) {
             collisionXZ = true;
             break;
@@ -211,19 +216,24 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
     }
 
     if (!collisionXZ) {
-        position_ = newPos; // 水平移動を適用
+        position_ = newPos; // 衝突なしなら移動を適用
     }
 
-    // Y軸（垂直）の移動と衝突
+    // Y軸（鉛直）の移動と衝突判定
     position_.y += desiredMove.y;
     playerAABB = GetAABB(); // 更新されたXZ位置でAABBを再計算
     bool collisionY = false;
 
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
+        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        
         if (playerAABB.IsOverlap(obj->GetAABB())) {
-            // オブジェクトの上にいるか、下から突き上げたか
-            if (desiredMove.y < 0.0f) { // 落下中
-                position_.y = obj->GetAABB().GetMax().y; // オブジェクトの天面にスナップ
+            // オブジェクトの下にいるか、上にいるかで処理を分ける
+            if (desiredMove.y < 0.0f) { // 下降中
+                position_.y = obj->GetAABB().GetMax().y; // オブジェクトの上面にスナップ
                 velocityY_ = 0.0f;
                 isGrounded_ = true;
             } else if (desiredMove.y > 0.0f) { // 上昇中

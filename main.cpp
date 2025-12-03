@@ -78,7 +78,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 
 	//クライアント領域のサイズを持った短形
-	RECT window_rect = { 0,0,1920/2,1080/2 };
+	RECT window_rect = { 0,0,1920 * 0.75,1080 * 0.75 };
 
 	//ウィンドウのスタイル
 	DWORD window_style = WS_EX_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);

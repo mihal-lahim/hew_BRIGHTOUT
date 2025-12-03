@@ -174,7 +174,7 @@ void Game_Initialize()
 	// 第1区画：左上 (NW: Northwest)
 	// 座標範囲: X(-25～0), Z(-25～0)
 	// サイズ: 20x20 units
-	// 配置物: 電柱5本、家3棟
+	// 配置物: 電柱5本、家4棟
 	// ========================================
 	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-12.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID); 
 	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, -12.0f), 4.0f, 0.2f, poleID); 
@@ -184,14 +184,14 @@ void Game_Initialize()
 
 	//接続
 	g_ObjectManager.ConnectPolesByID(0, 1);
-	g_ObjectManager.ConnectPolesByID(1, 2);
-	g_ObjectManager.ConnectPolesByID(2, 3);
+	g_ObjectManager.ConnectPolesByID(0, 2);
+	g_ObjectManager.ConnectPolesByID(1, 3);
+	g_ObjectManager.ConnectPolesByID(2, 4);
 	g_ObjectManager.ConnectPolesByID(3, 4);
+	g_ObjectManager.ConnectPolesByID(0, 4);
+
 	
 	// 第1区画の家：4つ
-	//g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);  // 家1: (-18, -18)
-	//g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);   // 家2: (-7, -18)
-	//g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, -7.0f), 5.0f, 100.0f, g_houseModel);   // 家3: (-18, -7)
 	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-22.0f, 0.0f, -10.0f), 5.0f, 100.0f, g_houseModel, 180.0f);
 	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-10.0f, 0.0f, -22.0f), 5.0f, 100.0f, g_houseModel, 90.0f);
 	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-22.0f, 0.0f, -22.0f), 5.0f, 100.0f, g_houseModel, 135.0f);
@@ -201,84 +201,89 @@ void Game_Initialize()
 	// 第2区画：右上 (NE: Northeast)
 	// 座標範囲: X(0～25), Z(-25～0)
 	// サイズ: 20x20 units
-	// 配置物: 電柱6本、家3棟
+	// 配置物: 電柱5本、家2棟
 	// ========================================
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(7.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);    // 家4直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);   // 家5直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, -7.0f), 4.0f, 0.2f, poleID);    // 家6直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
-	
-	// 第2区画の家：3つ
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(7.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);   // 家4: (7, -18)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);  // 家5: (18, -18)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, -7.0f), 5.0f, 100.0f, g_houseModel);   // 家6: (18, -7)
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(12.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -12.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(25.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -25.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(25.0f, 0.0f, -25.0f), 4.0f, 0.2f, poleID);
+
+	// 第2区画の電線接続
+	g_ObjectManager.ConnectPolesByID(5, 6);
+	g_ObjectManager.ConnectPolesByID(5, 7);
+	g_ObjectManager.ConnectPolesByID(6, 8);
+	g_ObjectManager.ConnectPolesByID(7, 9);
+	g_ObjectManager.ConnectPolesByID(8, 9);
+	g_ObjectManager.ConnectPolesByID(5, 9);
+
+	// 第2区画の家：4つ
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(22.0f, 0.0f, -10.0f), 5.0f, 100.0f, g_houseModel, 0.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(10.0f, 0.0f, -22.0f), 5.0f, 100.0f, g_houseModel, 270.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(22.0f, 0.0f, -22.0f), 5.0f, 100.0f, g_houseModel, 225.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(10.0f, 0.0f, -10.0f), 5.0f, 100.0f, g_houseModel, 90.0f);
 
 	// ========================================
 	// 第3区画：左下 (SW: Southwest)
 	// 座標範囲: X(-25～0), Z(0～25)
 	// サイズ: 20x20 units
-	// 配置物: 電柱7本、家4棟
+	// 配置物: 電柱5本、家4棟
 	// ========================================
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);    // 家7直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-15.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-7.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);     // 家8直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);   // 家9直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-7.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);    // 家10直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-15.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-12.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 12.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-25.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 25.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-25.0f, 0.0f, 25.0f), 4.0f, 0.2f, poleID);
+
+	// 第3区画の電線接続
+	g_ObjectManager.ConnectPolesByID(10, 11);
+	g_ObjectManager.ConnectPolesByID(10, 12);
+	g_ObjectManager.ConnectPolesByID(11, 13);
+	g_ObjectManager.ConnectPolesByID(12, 14);
+	g_ObjectManager.ConnectPolesByID(13, 14);
+	g_ObjectManager.ConnectPolesByID(10, 14);
 	
-	// 第3区画の家：4つ
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);   // 家7: (-18, 7)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);    // 家8: (-7, 7)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);  // 家9: (-18, 18)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);   // 家10: (-7, 18)
+	// 第3区画の家：3つ（電柱沿いに配置）
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-22.0f, 0.0f, 10.0f), 5.0f, 100.0f, g_houseModel, 180.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-10.0f, 0.0f, 22.0f), 5.0f, 100.0f, g_houseModel, 90.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-22.0f, 0.0f, 22.0f), 5.0f, 100.0f, g_houseModel, 45.0f);
 
 	// ========================================
 	// 第4区画：右下 (SE: Southeast)
 	// 座標範囲: X(0～25), Z(0～25)
 	// サイズ: 20x20 units
-	// 配置物: 電柱6本、家3棟
+	// 配置物: 電柱5本、家3棟
 	// ========================================
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(7.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);      // 家11直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);     // 家12直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);    // 家13直上
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(12.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 12.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(25.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 25.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(25.0f, 0.0f, 25.0f), 4.0f, 0.2f, poleID);
+
+	// 第4区画の電線接続
+	g_ObjectManager.ConnectPolesByID(15, 16);
+	g_ObjectManager.ConnectPolesByID(15, 17);
+	g_ObjectManager.ConnectPolesByID(16, 18);
+	g_ObjectManager.ConnectPolesByID(17, 19);
+	g_ObjectManager.ConnectPolesByID(18, 19);
+	g_ObjectManager.ConnectPolesByID(15, 19);
 	
-	// 第4区画の家：3つ
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(7.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);    // 家11: (7, 7)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);   // 家12: (18, 7)
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);  // 家13: (18, 18)
+	// 第4区画の家：3つ（電柱沿いに配置）
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(22.0f, 0.0f, 10.0f), 5.0f, 100.0f, g_houseModel, 0.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(10.0f, 0.0f, 22.0f), 5.0f, 100.0f, g_houseModel, 270.0f);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(22.0f, 0.0f, 22.0f), 5.0f, 100.0f, g_houseModel, 315.0f);
 
 	// ========================================
-	// 中央の連結電柱（区画を接続）
-	// 座標範囲: X(-5～5), Z(-5～5)
-	// サイズ: 10x10 units (各区画の境界部分)
-	// 配置物: 電柱5本（十字配置＋中央1本）
+	// 区画間の接続（外側の電柱同士を接続）
 	// ========================================
-	//g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);   // 左上交差点
-	//g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);    // 右上交差点
-	//g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);    // 左下交差点
-	//g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);     // 右下交差点
-	//g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 4.0f, 0.2f, poleID);     // 中央（全区画を接続）
+	
+	g_ObjectManager.ConnectPolesByID(3, 8);		// 第1区画と第2区画の接続
+	g_ObjectManager.ConnectPolesByID(2,12);		// 第1区画と第3区画の接続
+	g_ObjectManager.ConnectPolesByID(13, 18);   // 第3区画と第4区画の接続
+	g_ObjectManager.ConnectPolesByID(7, 17);    // 第2区画と第4区画の接続
+	
 
-	// ========================================
-	// 電柱同士の手動接続
-	// ========================================
-	// 例：電柱0と電柱1を接続
-	// g_ObjectManager.ConnectPolesByID(0, 1);
-	// g_ObjectManager.ConnectPolesByID(1, 2);
-	// g_ObjectManager.ConnectPolesByID(2, 0); // 三角形に接続する場合
-
-	// 電柱同士を電線で自動接続
-	// 接続距離を調整したい場合: g_ObjectManager.SetPoleConnectionDistance(50.0f);
-	g_ObjectManager.SetPoleConnectionDistance(50.0f);
-	//g_ObjectManager.ConnectNearbyPoles();
-
-	// アイテムジェネレーターオブジェクトをフィールドに配置（ヘルパー関数使用）
+	//アイテムジェネレーターオブジェクトをフィールドに配置（ヘルパー関数使用）
 	int generatorID = 0;
 	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(-15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
 	g_ObjectManager.CreateItemGenerator(DirectX::XMFLOAT3(15.0f, 1.0f, 0.0f), 5.0f, 2.0f, generatorID);
@@ -687,24 +692,24 @@ void Game_Update(double elapsed_time)
 			DEBUG_LOGF("ItemGenerators: %d | ChargingSpots: %d", generatorCount, chargingSpotCount);
 			
 			// ポール情報の詳細表示
-			if (poleCount > 0) {
-				DEBUG_LOG("");
-				DEBUG_LOG("--- POLE INFO ---");
-				int poleIndex = 0;
-				for (const auto& obj : allObjects) {
-					if (obj->GetTag() == GameObjectTag::POLE) {
-						Pole* pole = static_cast<Pole*>(obj.get());
-						if (pole) {
-							DirectX::XMFLOAT3 polePos = pole->GetPosition();
-							DEBUG_LOGF("  Pole%d ID:%d (%.1f, %.1f, %.1f)", 
-								poleIndex++,
-								pole->GetPoleID(),
-								polePos.x, polePos.y, polePos.z);
-						}
-					}
-				}
-			}
-			
+			//if (poleCount > 0) {
+			//	DEBUG_LOG("");
+			//	DEBUG_LOG("--- POLE INFO ---");
+			//	int poleIndex = 0;
+			//	for (const auto& obj : allObjects) {
+			//		if (obj->GetTag() == GameObjectTag::POLE) {
+			//			Pole* pole = static_cast<Pole*>(obj.get());
+			//			if (pole) {
+			//				DirectX::XMFLOAT3 polePos = pole->GetPosition();
+			//				DEBUG_LOGF("  Pole%d ID:%d (%.1f, %.1f, %.1f)", 
+			//					poleIndex++,
+			//					pole->GetPoleID(),
+			//					polePos.x, polePos.y, polePos.z);
+			//			}
+			//		}
+			//	}
+			//}
+			//
 			DEBUG_LOG("========================================");
 		}
 	}
