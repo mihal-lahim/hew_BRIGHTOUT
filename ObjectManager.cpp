@@ -171,9 +171,9 @@ void ObjectManager::CreateHouse(const DirectX::XMFLOAT3& position, float scale, 
     AddGameObject(std::move(house));
 }
 
-void ObjectManager::CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID)
+void ObjectManager::CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID, MODEL* model)
 {
-    auto pole = std::make_unique<Pole>(position, height, radius);
+    auto pole = std::make_unique<Pole>(position, model, height, radius);
     pole->SetPoleID(poleID++);
     AddGameObject(std::move(pole));
 }
@@ -185,7 +185,7 @@ void ObjectManager::CreateItemGenerator(const DirectX::XMFLOAT3& position, float
     AddGameObject(std::move(generator));
 }
 
-void ObjectManager::CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate)
+void ObjectManager::CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate, MODEL* model)
 {
     auto chargingSpot = std::make_unique<ChargingSpot>(position, chargeRadius, chargeRate);
     AddGameObject(std::move(chargingSpot));

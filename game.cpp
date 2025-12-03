@@ -49,6 +49,7 @@ static MODEL* g_pKirby{};
 static MODEL* g_test{};
 static MODEL* g_ball{};
 static MODEL* g_houseModel{};  // ハウスモデル
+static MODEL* g_pall{};
 
 // コントローラー: 最大3人サポート
 static Controller* g_controllers[3] = { nullptr, nullptr, nullptr };
@@ -152,26 +153,88 @@ void Game_Initialize()
 	g_pKirby = ModelLoad("model/aruhula_aitemu_toreru_ba.fbx", 0.1f, false);
 	g_test = ModelLoad("model/test.fbx", 0.1f, false);
 	g_ball = ModelLoad("model/ball.fbx", 0.1f, false);
+	g_pall = ModelLoad("model/aruhula_dentyu_tan.fbx", 0.1f, false);
 
 	// ハウスモデルのロード
 	g_houseModel = ModelLoad("model/aruhula_ie.fbx", 0.1f, false);  // ※ ハウスの適切なモデルに置き換え
 
-	// 電柱を ObjectManager に追加（ヘルパー関数使用）
+	// === 4区画マップレイアウト ===
+	// 各区画に家と電柱を配置
+	
 	int poleID = 0;
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(20.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, -20.0f), 4.0f, 0.2f, poleID);
-	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, 20.0f), 4.0f, 0.2f, poleID);
 
+	// ========================================
+	// 第1区画：左上 (NW: -20～0, -20～0)
+	// ========================================
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);  // 家1直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-15.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-7.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);   // 家2直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, -7.0f), 4.0f, 0.2f, poleID);   // 家3直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
+	
+	// 第1区画の家：3つ
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, -7.0f), 5.0f, 100.0f, g_houseModel);
+
+	// ========================================
+	// 第2区画：右上 (NE: 0～20, -20～0)
+	// ========================================
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(7.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);    // 家4直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, -18.0f), 4.0f, 0.2f, poleID);   // 家5直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, -15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, -7.0f), 4.0f, 0.2f, poleID);    // 家6直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
+	
+	// 第2区画の家：3つ
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(7.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, -18.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, -7.0f), 5.0f, 100.0f, g_houseModel);
+
+	// ========================================
+	// 第3区画：左下 (SW: -20～0, 0～20)
+	// ========================================
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);    // 家7直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-15.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-7.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);     // 家8直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-18.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);   // 家9直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-7.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);    // 家10直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-15.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	
+	// 第3区画の家：4つ
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-18.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-7.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);
+
+	// ========================================
+	// 第4区画：右下 (SE: 0～20, 0～20)
+	// ========================================
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(7.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);      // 家11直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, 7.0f), 4.0f, 0.2f, poleID);     // 家12直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(18.0f, 0.0f, 18.0f), 4.0f, 0.2f, poleID);    // 家13直上
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 15.0f), 4.0f, 0.2f, poleID);
+	
+	// 第4区画の家：3つ
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(7.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, 7.0f), 5.0f, 100.0f, g_houseModel);
+	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(18.0f, 0.0f, 18.0f), 5.0f, 100.0f, g_houseModel);
+
+	// ========================================
+	// 中央の連結電柱（区画を接続）
+	// ========================================
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, -5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(-5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(5.0f, 0.0f, 5.0f), 4.0f, 0.2f, poleID);
+	g_ObjectManager.CreatePole(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f), 4.0f, 0.2f, poleID);
 
 	// 電柱同士を電線で自動接続
 	g_ObjectManager.ConnectNearbyPoles();
-
-	// ハウスを ObjectManager に追加（ヘルパー関数使用）
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(-15.0f, 0.0f, -15.0f), 5.0f, 100.0f);
-	g_ObjectManager.CreateHouse(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), 5.0f, 100.0f);
 
 	// アイテムジェネレーターオブジェクトをフィールドに配置（ヘルパー関数使用）
 	int generatorID = 0;

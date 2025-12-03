@@ -59,10 +59,12 @@ public:
     bool IsDebugAABBEnabled() const;
 
     // オブジェクト作成ヘルパー関数
-    void CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, struct MODEL* model = nullptr);
-    void CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID);
+    void CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, MODEL* model = nullptr);
+    void CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID, MODEL* model = nullptr);
     void CreateItemGenerator(const DirectX::XMFLOAT3& position, float spawnRadius, float spawnInterval, int& generatorID);
-    void CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate);
+    void CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate, MODEL* model = nullptr);
+
+
 
 private:
     bool m_debugAABBEnabled = true;
