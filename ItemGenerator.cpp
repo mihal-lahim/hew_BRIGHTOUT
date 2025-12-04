@@ -22,10 +22,26 @@ void ItemGenerator::Initialize()
     srand(static_cast<unsigned>(time(nullptr)));
 }
 
+MODEL* ItemGenerator::GetModelForType(ItemType type) const
+{
+    switch (type) {
+        case ItemType::SpeedBoost:
+            return m_speedBoostModel;
+        case ItemType::ChargeTank:
+            return m_chargeTankModel;
+        case ItemType::ElectricBoost:
+            return m_electricBoostModel;
+        default:
+            return nullptr;
+    }
+}
+
 void ItemGenerator::GenerateItem(const XMFLOAT3& pos, ItemType type)
 {
     // 新しいアイテムを生成
     Item* newItem = new Item(pos, type, 0.5f);
+    // タイプに応じたモデルを設定
+    newItem->SetModel(GetModelForType(type));
     m_items.push_back(newItem);
 }
 
@@ -33,6 +49,8 @@ void ItemGenerator::RegisterItem(Item* item)
 {
     // 外部から生成されたアイテムを登録（ItemGeneratorObject から呼び出される）
     if (item) {
+        // タイプに応じたモデルを設定
+        item->SetModel(GetModelForType(item->GetType()));
         m_items.push_back(item);
     }
 }

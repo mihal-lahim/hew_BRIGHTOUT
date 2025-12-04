@@ -42,6 +42,10 @@ public:
 
     const DirectX::XMFLOAT3& GetPosition() const { return m_Position; }
 
+    // 回転取得・設定
+    const DirectX::XMFLOAT3& GetRotation() const { return m_Rotation; }
+    void SetRotation(const DirectX::XMFLOAT3& rotation) { m_Rotation = rotation; }
+
     // タグ関連のメソッド
     void SetTag(GameObjectTag tag) { m_Tag = tag; }
     GameObjectTag GetTag() const { return m_Tag; }

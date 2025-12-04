@@ -34,17 +34,20 @@ void House::Draw() const
 {
     if (!m_model) return;
 
-    // ハウスの描画
-    XMMATRIX scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
+    // ハウスの描画（スケール＆回転対応）
+    XMMATRIX scale = XMMatrixScaling(m_scale, m_scale, m_scale);
+    XMMATRIX rotation = XMMatrixRotationY(m_Rotation.y);
     XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
-    XMMATRIX world = scale * translation;
+    XMMATRIX world = scale * rotation * translation;
 
     ModelDraw(m_model, world);
 }
 
 AABB House::GetAABB() const
 {
-    float halfSize = HOUSE_SIZE * 0.5f;
+    // 当たり判定をモデルサイズより小さく設定
+    // AABB_SCALE_FACTOR で調整可能（0.5f = モデルの50%）
+    float halfSize = HOUSE_SIZE * 0.5f * m_scale * AABB_SCALE_FACTOR;
     XMFLOAT3 min = {
         m_Position.x - halfSize,
         m_Position.y - halfSize,

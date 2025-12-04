@@ -185,6 +185,7 @@
     <ClCompile Include="top_down_camera.cpp" />
     <ClCompile Include="UI_Charge.cpp" />
     <ClCompile Include="UI_house.cpp" />
+    <ClCompile Include="UI_Timer.cpp" />
     <ClCompile Include="WICTextureLoader11.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +238,7 @@
     <ClInclude Include="UI.h" />
     <ClInclude Include="UI_Charge.h" />
     <ClInclude Include="UI_house.h" />
+    <ClInclude Include="UI_Timer.h" />
     <ClInclude Include="WICTextureLoader11.h" />
   </ItemGroup>
   <ItemGroup>

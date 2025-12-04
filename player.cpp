@@ -90,7 +90,7 @@ void Player::Update(double elapsedSec)
 				if (IsNearPole()) {
 					ChangeState(State::HUMAN);
 					if (!isDashing_) {
-						currentSpeed_ = baseSpeed_;
+					currentSpeed_ = baseSpeed_;
 					}
 					// 電柱から跳ね返す処理
 					KnockbackFromPole();
@@ -194,7 +194,7 @@ void Player::Update(double elapsedSec)
 // 衝突解決
 void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec)
 {
-    // XZ平面（水平）の移動と衝突
+    // XZ平面（水平）の移動と衝突判定
     XMFLOAT3 newPos = position_;
     newPos.x += desiredMove.x;
     newPos.z += desiredMove.z;
@@ -204,6 +204,11 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
 
     extern ObjectManager g_ObjectManager;
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
+        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        
         if (playerAABB.IsOverlap(obj->GetAABB())) {
             collisionXZ = true;
             break;
@@ -211,19 +216,24 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
     }
 
     if (!collisionXZ) {
-        position_ = newPos; // 水平移動を適用
+        position_ = newPos; // 衝突なしなら移動を適用
     }
 
-    // Y軸（垂直）の移動と衝突
+    // Y軸（鉛直）の移動と衝突判定
     position_.y += desiredMove.y;
     playerAABB = GetAABB(); // 更新されたXZ位置でAABBを再計算
     bool collisionY = false;
 
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
+        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        
         if (playerAABB.IsOverlap(obj->GetAABB())) {
-            // オブジェクトの上にいるか、下から突き上げたか
-            if (desiredMove.y < 0.0f) { // 落下中
-                position_.y = obj->GetAABB().GetMax().y; // オブジェクトの天面にスナップ
+            // オブジェクトの下にいるか、上にいるかで処理を分ける
+            if (desiredMove.y < 0.0f) { // 下降中
+                position_.y = obj->GetAABB().GetMax().y; // オブジェクトの上面にスナップ
                 velocityY_ = 0.0f;
                 isGrounded_ = true;
             } else if (desiredMove.y > 0.0f) { // 上昇中
@@ -249,8 +259,8 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
 AABB Player::GetAABBAt(const DirectX::XMFLOAT3& pos) const
 {
     float halfW = aabbHalfSize.x;
-    float height = aabbHalfSize.y * 2.0f; // AABBの高さは全高
-    DirectX::XMFLOAT3 min{ pos.x - halfW, pos.y, pos.z - halfW };
+    float height = aabbHalfSize.y * 2.0f; // AABBの高さは全体
+    DirectX::XMFLOAT3 min{ pos.x - halfW, pos.y - 0.5f, pos.z - halfW };
     DirectX::XMFLOAT3 max{ pos.x + halfW, pos.y + height, pos.z + halfW };
     return AABB(min, max);
 }
@@ -303,7 +313,8 @@ void Player::TakeDamage(float amount)
 	health_ -= amount;
 	if (health_ < 0.0f) health_ = 0.0f;
 	
-	DEBUG_LOGF("[TakeDamage] Called with amount=%.2f | health_ now=%.1f", amount, health_);
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	//DEBUG_LOGF("[TakeDamage] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Damage=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
 }
 
 void Player::Heal(float amount)
@@ -311,7 +322,8 @@ void Player::Heal(float amount)
 	health_ += amount;
 	if (health_ > maxHealth_) health_ = maxHealth_;
 	
-	DEBUG_LOGF("[Player] Healed: +%.2f | HP: %.1f/%.1f", amount, health_, maxHealth_);
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	//DEBUG_LOGF("[Heal] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Healed=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
 }
 
 void Player::SetController(Controller* controller)
@@ -500,9 +512,11 @@ void Player::ChangeState(Player::State newState)
 	// HUMAN状態に戻る場合はタイマーをリセット
 	if (newState == State::HUMAN) {
 		powerLineDamageTimer_ = 0.0f;
-		//DEBUG_LOG("[Player] State changed to: HUMAN");
+		DEBUG_LOGF("[ChangeState] HUMAN | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+			position_.x, position_.y, position_.z, health_, maxHealth_);
 	} else if (newState == State::ELECTRICITY) {
-		//DEBUG_LOG("[Player] State changed to: ELECTRICITY");
+		DEBUG_LOGF("[ChangeState] ELECTRICITY | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+			position_.x, position_.y, position_.z, health_, maxHealth_);
 	}
 }
 
@@ -519,8 +533,7 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 		transferAmount = static_cast<float>(health_);
 	}
 
-	//// デバッグ情報出力
-	//DEBUG_LOGF("[Transfer] Amount: %.2f | Player HP Before: %.1f", transferAmount, health_);
+	
 
 	// ハウスに電気を供給（体力をそのまま電気に変換）
 	house->ReceiveElectricity(transferAmount);
@@ -528,8 +541,6 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 	// プレイヤーの体力から差し引く（電気を消費）
 	TakeDamage(transferAmount);
 	
-	//// デバッグ情報出力
-	//DEBUG_LOGF("[Transfer] Player HP After: %.1f", health_);
 }
 
 // 最も近いハウスを取得
@@ -564,8 +575,9 @@ void Player::StartSupplyingElectricity(House* house)
 	m_supplyingHouse = house;
 	m_isSupplying = true;
 
-	// デバッグログ出力
-	DEBUG_LOGF("Player started supplying electricity to house at (%.1f, %.1f, %.1f)", 
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	DEBUG_LOGF("[StartSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | House=(%.1f, %.1f, %.1f)", 
+		stateName, position_.x, position_.y, position_.z, health_, maxHealth_,
 		house->GetPosition().x, house->GetPosition().y, house->GetPosition().z);
 }
 
@@ -575,6 +587,7 @@ void Player::StopSupplyingElectricity()
 	m_isSupplying = false;
 	m_supplyingHouse = nullptr;
 
-	// デバッグログ出力
-	//DEBUG_LOG("Player stopped supplying electricity");
+	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
+	DEBUG_LOGF("[StopSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
+		stateName, position_.x, position_.y, position_.z, health_, maxHealth_);
 }

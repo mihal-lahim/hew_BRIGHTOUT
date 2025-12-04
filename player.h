@@ -62,7 +62,7 @@ private:
     } state = State::HUMAN;
 
     // 衝突判定用AABBのサイズ（ローカル空間）
-    DirectX::XMFLOAT3 aabbHalfSize{ 0.5f, 1.0f, 0.5f }; // 幅1m、高さ2m、奥行1m
+    DirectX::XMFLOAT3 aabbHalfSize{ 0.5f, 1.5f, 0.5f }; // 幅1m、高さ2m、奥行1m
 
 	// 重力関連
 	float velocityY_ = 0.0f; // Y軸速度（鉛直方向）

@@ -50,8 +50,10 @@ void Map::Finalize()
 void Map::Draw() const
 {
 	for (const auto& tile : m_GroundTiles) {
-		XMMATRIX mtxScale = XMMatrixScaling(tile.width, 0.1f, tile.depth); // 地面は薄く
-		XMMATRIX mtxTrans = XMMatrixTranslation(tile.position.x, tile.position.y, tile.position.z);
+		// 地面は厚さ 0.1f でスケール
+		// キューブは中心から上下に0.05f ずつ広がるため、底面がY=0になるようにオフセット
+		XMMATRIX mtxScale = XMMatrixScaling(tile.width, 0.1f, tile.depth);
+		XMMATRIX mtxTrans = XMMatrixTranslation(tile.position.x, tile.position.y - 0.05f, tile.position.z);
 
 		XMMATRIX world = mtxScale * mtxTrans;
 		Cube_Draw(tile.textureId, world);

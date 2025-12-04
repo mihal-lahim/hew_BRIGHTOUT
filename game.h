@@ -17,4 +17,7 @@ void Game_Draw();
 // プレイヤー数を設定（Game_Initialize より前に呼ぶ）
 void Game_SetPlayerCount(int count);
 
+// コントローラー初期化・プレイヤー数設定（ウィンドウ作成直後に呼ぶ）
+void Game_InitializeControllers();
+
 #endif // GAME_H

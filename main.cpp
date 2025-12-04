@@ -78,7 +78,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 
 
 	//クライアント領域のサイズを持った短形
-	RECT window_rect = { 0,0,1920/2,1080/2 };
+	RECT window_rect = { 0,0,1920 * 0.75,1080 * 0.75 };
 
 	//ウィンドウのスタイル
 	DWORD window_style = WS_EX_OVERLAPPEDWINDOW ^ (WS_THICKFRAME | WS_MAXIMIZEBOX);
@@ -132,7 +132,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance,
 	ShowWindow(hWnd, nCmdShow);	//ウィンドウ表示
 	UpdateWindow(hWnd);			//ウィンドウの描画の更新
 
-	// 各種初期化
+	// テ平線の初期化
 	if (!Direct3D_Initialize(hWnd))
 	{
 		PostQuitMessage(0);//メッセージを表示
@@ -328,6 +328,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	return 0;
 }
+
+
+
 
 
 

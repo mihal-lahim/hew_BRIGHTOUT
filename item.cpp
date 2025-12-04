@@ -2,6 +2,7 @@
 #include "player.h"
 #include "cube.h"
 #include "texture.h"
+#include "model.h"
 #include <cmath>
 
 Item::Item(const XMFLOAT3& pos, ItemType type, float size)
@@ -85,13 +86,32 @@ void Item::Draw() const
 {
     if (!m_active) return;
 
-    // テクスチャを設定して描画
+    // モデルがあればモデル描画、なければテクスチャ描画
+    if (m_pModel != nullptr) {
+        DrawWithModel();
+    } else {
+        DrawWithTexture();
+    }
+}
+
+void Item::DrawWithModel() const
+{
+    XMMATRIX scale = XMMatrixScaling(m_size, m_size, m_size);
+    XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
+    XMMATRIX world = scale * translation;
+    
+    ModelDraw(m_pModel, world);
+}
+
+void Item::DrawWithTexture() const
+{
+    // テクスチャを使用して描画
     {
         XMMATRIX scale = XMMatrixScaling(m_size, m_size, m_size);
         XMMATRIX translation = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
         XMMATRIX world = scale * translation;
         
-        // ロードしたテクスチャを設定
+        // ロード済みテクスチャを設定
         if (m_textureID != -1) {
             Texture_SetTexture(m_textureID);
         }

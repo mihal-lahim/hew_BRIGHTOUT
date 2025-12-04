@@ -8,7 +8,7 @@
 class ChargingSpot : public GameObject
 {
 public:
-	ChargingSpot(const DirectX::XMFLOAT3& pos, float radius = 5.0f, float chargeRate = 20.0f);
+	ChargingSpot(const DirectX::XMFLOAT3& pos, float radius = 5.0f, float chargeRate = 20.0f, MODEL* model = nullptr);
 	virtual ~ChargingSpot() = default;
 
 	virtual void Update(double elapsed) override;
