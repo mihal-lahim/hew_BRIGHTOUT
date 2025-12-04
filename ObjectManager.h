@@ -7,6 +7,11 @@
 #include "GameObject.h"
 #include "debug_console.h"
 
+// フォワード宣言
+class Player;
+class Enemy;
+class Controller;
+
 class ObjectManager
 {
 private:
@@ -38,6 +43,7 @@ public:
             case GameObjectTag::HOUSE: tagName = "House"; break;
             case GameObjectTag::ITEM_GENERATOR: tagName = "ItemGenerator"; break;
             case GameObjectTag::CHARGING_SPOT: tagName = "ChargingSpot"; break;
+            case GameObjectTag::ENEMY: tagName = "Enemy"; break;
             default: tagName = "Unknown"; break;
         }
         
@@ -64,7 +70,7 @@ public:
     bool IsDebugAABBEnabled() const;
 
     // オブジェクト作成ヘルパー関数
-    // rotationY: Y軸回転角度（度数法: 0～360度、デフォルト0度）
+    // rotationY: Y軸回転角度（単位：0～360度、デフォルト0度）
     void CreateHouse(const DirectX::XMFLOAT3& position, float scale, float maxElectricity, 
                      MODEL* model = nullptr, float rotationY = 0.0f);
     void CreatePole(const DirectX::XMFLOAT3& position, float height, float radius, int& poleID, 
@@ -73,8 +79,14 @@ public:
                             int& generatorID, float rotationY = 0.0f);
     void CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate, 
                            MODEL* model = nullptr, float rotationY = 0.0f);
-
-
+    
+    // Player を ObjectManager に追加して返す
+    Player* CreatePlayer(int playerId, const DirectX::XMFLOAT3& pos,
+                        MODEL* model, MODEL* electricModel,
+                        const DirectX::XMFLOAT3& dir, class Controller* controller);
+    
+    // Enemy を ObjectManager に追加して返す
+    Enemy* CreateEnemy(const DirectX::XMFLOAT3& position, MODEL* model, float maxHealth);
 
 private:
     bool m_debugAABBEnabled = true;

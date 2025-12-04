@@ -151,6 +151,7 @@
     <ClCompile Include="debug_ostream.cpp" />
     <ClCompile Include="debug_text.cpp" />
     <ClCompile Include="direct3d.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="fade.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="GameObject.cpp" />
@@ -204,6 +205,7 @@
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
+    <ClInclude Include="enemy.h" />
     <ClInclude Include="fade.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="GameObject.h" />

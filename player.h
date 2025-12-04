@@ -9,6 +9,7 @@
 #include <DirectXMath.h>
 #include <array>
 #include <memory>
+#include "GameObject.h"
 #include "controller.h"
 #include "top_down_camera.h"
 #include "collision.h"
@@ -19,7 +20,7 @@ class TopDownCamera; // forward declaration
 class Camera; // forward declaration for getter
 class House; // forward declaration for house pointer
 
-class Player
+class Player : public GameObject
 {
 private:
     // モデル（オプション、外部で管理されるポインタ）
@@ -34,7 +35,6 @@ private:
     std::unique_ptr<TopDownCamera> camera_;
 
     //位置と向き
-    DirectX::XMFLOAT3 position_{};
     DirectX::XMFLOAT3 direction_{ 0.0f,0.0f,1.0f };
 
     //体力
@@ -96,18 +96,15 @@ public:
  Player(MODEL* model, MODEL* electricModel, const DirectX::XMFLOAT3& pos, const DirectX::XMFLOAT3& dir);
 
  // 毎フレーム更新（経過時間は秒）
- void Update(double elapsedSec);
+ void Update(double elapsedSec) override;
 
  // 移動：方向は正規化されていることを想定
  void Move(const DirectX::XMFLOAT3& dir, double elapsedSec);
 
- // 描画
- void Draw();
-
  // ダッシュ開始/終了
  void StartDash();
  void StopDash();
-
+ 
  // ダメージ/回復
  void TakeDamage(float amount);
  void Heal(float amount);
@@ -121,7 +118,7 @@ public:
  Camera* GetCamera() const; // return base Camera pointer for external use
 
  //位置取得（カメラ等が参照するためのアクセサ）
- const DirectX::XMFLOAT3& GetPosition() const { return position_; }
+ const DirectX::XMFLOAT3& GetPosition() const { return m_Position; }
 
  //体力取得
  float GetHealth() const { return health_; }
@@ -177,6 +174,9 @@ public:
  void StartSupplyingElectricity(class House* house);
  void StopSupplyingElectricity();
 
+ // 描画処理
+ void Draw() const;
+
 private:
     // 衝突解決ヘルパー
     void ResolveCollisions(DirectX::XMFLOAT3& newPos, double elapsedSec);
@@ -196,4 +196,4 @@ private:
     static constexpr float KNOCKBACK_HORIZONTAL_SPEED = 5.0f; // 水平方向の跳ね返し速度
 
 };
-#endif // !PLAYER_H#endif // !PLAYER_H
+#endif // !PLAYER_H#endif // !PLAYER_H#endif // !PLAYER_H#endif // !PLAYER_H#ifndef PLAYER_H

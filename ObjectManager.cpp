@@ -6,6 +6,8 @@
 #include "DebugAABB.h"
 #include "house.h"
 #include "ChargingSpot.h"
+#include "Enemy.h"
+#include "Player.h"
 #include "debug_console.h"
 #include <algorithm>
 #include <cmath>
@@ -184,10 +186,53 @@ void ObjectManager::CreateItemGenerator(const DirectX::XMFLOAT3& position, float
 
 void ObjectManager::CreateChargingSpot(const DirectX::XMFLOAT3& position, float chargeRadius, float chargeRate, MODEL* model, float rotationY)
 {
-    // 度数法（0-360度）をラジアン角に変換
+    // 度数法（0-360度）をラジアンに変換
     float rotationRad = rotationY * 3.14159f / 180.0f;
     
     auto chargingSpot = std::make_unique<ChargingSpot>(position, chargeRadius, chargeRate, model);
     chargingSpot->SetRotation({ 0.0f, rotationRad, 0.0f });
     AddGameObject(std::move(chargingSpot));
+}
+
+// Player を ObjectManager に追加して返す
+Player* ObjectManager::CreatePlayer(int playerId, const DirectX::XMFLOAT3& pos,
+                                   MODEL* model, MODEL* electricModel,
+                                   const DirectX::XMFLOAT3& dir, Controller* controller)
+{
+    auto player = std::make_unique<Player>(model, electricModel, pos, dir);
+    player->SetTag(GameObjectTag::PLAYER);
+    
+    // コントローラーを割り当て
+    if (controller) {
+        player->SetController(controller);
+    }
+    
+    // ポインタを取得（AddGameObject の前）
+    Player* pPlayer = player.get();
+    
+    // ObjectManager に追加
+    AddGameObject(std::move(player));
+    
+    DEBUG_LOGF("[ObjectManager] Created Player: ID=%d | Pos=(%.1f, %.1f, %.1f) | HP=100", 
+        playerId, pos.x, pos.y, pos.z);
+    
+    return pPlayer;
+}
+
+// Enemy を ObjectManager に追加して返す
+Enemy* ObjectManager::CreateEnemy(const DirectX::XMFLOAT3& position, MODEL* model, float maxHealth)
+{
+    auto enemy = std::make_unique<Enemy>(position, model, maxHealth);
+    enemy->SetTag(GameObjectTag::ENEMY);
+    
+    // ポインタを取得（AddGameObject の前）
+    Enemy* pEnemy = enemy.get();
+    
+    // ObjectManager に追加
+    AddGameObject(std::move(enemy));
+    
+    DEBUG_LOGF("[ObjectManager] Created Enemy: Pos=(%.1f, %.1f, %.1f) | MaxHealth=%.0f", 
+        position.x, position.y, position.z, maxHealth);
+    
+    return pEnemy;
 }
