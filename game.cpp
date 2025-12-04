@@ -37,6 +37,7 @@
 #include "UI_house.h"
 #include "scene.h"
 #include "UI_Timer.h"
+#include "Enemy.h"
 #include <array>
 #include <string>
 #include <cstdio>
@@ -51,6 +52,7 @@ static MODEL* g_ball{};
 static MODEL* g_houseModel{};  // ハウスモデル
 static MODEL* g_pall{};
 static MODEL* g_generatorModel{}; // ジェネレーターモデル
+static MODEL* g_EnemyModel{}; //敵モデル
 
 // コントローラー: 最大3人サポート
 static Controller* g_controllers[3] = { nullptr, nullptr, nullptr };
@@ -161,6 +163,10 @@ void Game_Initialize()
 	//ジェネレーターモデルのロード
 	g_generatorModel = ModelLoad("model/aruhula_hatuden.fbx", 0.1f, false);
 
+	//敵モデルのロード
+	g_EnemyModel = ModelLoad("model/kirby.fbx", 0.1f, false); //敵モデルのロード
+
+
 	// === 4区画マップレイアウト ===
 	// 各区画に家と電柱を配置
 	// 
@@ -168,6 +174,8 @@ void Game_Initialize()
 	// 中央原点: (0, 0)
 	// 各区画サイズ: 20x20 units
 	
+
+
 	int poleID = 0;
 
 	// ========================================
@@ -294,6 +302,11 @@ void Game_Initialize()
 	g_ObjectManager.CreateChargingSpot(DirectX::XMFLOAT3(-25.0f, 0.5f, 0.0f), 5.0f, 20.0f, g_generatorModel);
 	g_ObjectManager.CreateChargingSpot(DirectX::XMFLOAT3(25.0f, 0.5f, 0.0f), 5.0f, 20.0f, g_generatorModel);
 
+	// 敵を ObjectManager 経由で生成
+	g_ObjectManager.CreateEnemy(DirectX::XMFLOAT3(-20.0f, 0.0f, -10.0f), g_EnemyModel, 100.0f);
+	g_ObjectManager.CreateEnemy(DirectX::XMFLOAT3(15.0f, 0.0f, 15.0f), g_EnemyModel, 100.0f);
+
+
 	// コントローラーを動的確保し、各スロットごとにコンストラクタで初期化
 	for (int i = 0; i < 3; ++i) {
 		if (!g_controllers[i]) g_controllers[i] = new Controller(i, 16);
@@ -312,10 +325,16 @@ void Game_Initialize()
 	for (int i = 0; i < g_playerCount; ++i) {
 		float x = static_cast<float>(i * 2) - static_cast<float>(g_playerCount - 1); // 原点付近に分散配置
 		XMFLOAT3 pos = { x,16.0f,0.0f };
-		// ★ 修正点: プレイヤーの初期向きをZ軸負方向に変更
-		g_players[i] = new Player(g_pKirby, g_ball, pos, { 0.0f,10.0f,-1.0f });
-		// コントローラーを割り当て（スロット i）
-		g_players[i]->SetController(g_controllers[i]);
+		// ObjectManager 経由でプレイヤーを作成
+		g_players[i] = g_ObjectManager.CreatePlayer(
+			i,  // プレイヤーID
+			pos,  // 位置
+			g_pKirby,  // 通常モデル
+			g_ball,  // 電気状態モデル
+			DirectX::XMFLOAT3(0.0f, 10.0f, -1.0f),  // 初期方向
+			g_controllers[i]  // コントローラー
+		);
+		
 		// UI 用の互換グローバル（player0）を設定
 		if (i == 0) g_player = g_players[i];
 		// 各プレイヤーにカメラを作成
@@ -364,7 +383,27 @@ void Game_Initialize()
 	// ボタンヒント UI の初期化
 	g_buttonHintUI = new ButtonHintUI(Direct3D_GetDevice(), Direct3D_GetContext(), Direct3D_GetBackBufferWidth(), Direct3D_GetBackBufferHeight());
 
-
+	// 敵に全プレイヤーのリストを設定し、最も近いプレイヤーを自動追跡するようにする
+	const auto& allObjects = g_ObjectManager.GetGameObjects();
+	std::vector<Player*> playerList;
+	
+	// 全プレイヤーを集める
+	for (int i = 0; i < g_playerCount; ++i) {
+		if (g_players[i]) {
+			playerList.push_back(g_players[i]);
+		}
+	}
+	
+	// 敵に全プレイヤーを設定
+	for (const auto& obj : allObjects) {
+		if (obj->GetTag() == GameObjectTag::ENEMY) {
+			Enemy* enemy = static_cast<Enemy*>(obj.get());
+			if (enemy && !playerList.empty()) {
+				// 敵が全プレイヤーを認識できるようにする
+				enemy->SetPlayerList(playerList);
+			}
+		}
+	}
 }
 
 void Game_Finalize()
@@ -404,17 +443,14 @@ void Game_Finalize()
 		g_buttonHintUI = nullptr;
 	}
 
-	// プレイヤーを削除
+	// プレイヤーはObjectManagerが管理しているため、ポインタをリセットのみ
 	for (int i = 0; i < 3; ++i) {
-		if (g_players[i]) {
-			if (g_player == g_players[i]) g_player = nullptr;
-			delete g_players[i];
-			g_players[i] = nullptr;
-		}
+		if (g_player == g_players[i]) g_player = nullptr;
+		g_players[i] = nullptr;
 	}
 
 	// コントローラーを解放（スレッド停止・Join を行う）
-	for (int i = 0; i < 3; ++i) {
+for (int i = 0; i < 3; ++i) {
 		if (g_controllers[i]) {
 			// 実行中のスレッドがあれば停止してから join
 			g_controllers[i]->Stop();
@@ -430,6 +466,8 @@ void Game_Finalize()
 	// デバッグコンソールのシャットダウン
 	hal::DebugConsole::GetInstance().Success("=== Game Finalized ===");
 	hal::DebugConsole::GetInstance().Shutdown();
+
+	
 }
 
 static double keika_time = 0.0;
@@ -468,11 +506,21 @@ void Game_Update(double elapsed_time)
 	Fade_Update(elapsed_time);
 	Grid_Update(elapsed_time);
 
-	// プレイヤーを更新
-	for (int i = 0; i < g_playerCount; ++i) {
-		if (g_players[i]) g_players[i]->Update(elapsed_time);
-	}
+	// ObjectManager を更新（すべてのゲームオブジェクト、敵を含む）
+	g_ObjectManager.Update(elapsed_time);
 
+	// ===デバッグ：プレイヤーの状態を確認===
+	if (g_players[0]) {
+		static int debugFrame = 0;
+		debugFrame++;
+		if (debugFrame % 30 == 0) {  // 30フレームごとに出力
+			XMFLOAT3 pos = g_players[0]->GetPosition();
+			bool isGrounded = g_players[0]->IsGrounded();
+			float health = g_players[0]->GetHealth();
+			DEBUG_LOGF("[DEBUG] Player Pos: (%.1f, %.1f, %.1f) | Grounded: %s | Health: %.1f", 
+				pos.x, pos.y, pos.z, isGrounded ? "YES" : "NO", health);
+		}
+	}
 	// アイテムジェネレーターの更新
 	if (g_itemGenerator) {
 		g_itemGenerator->Update(elapsed_time);

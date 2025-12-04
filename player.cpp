@@ -19,22 +19,31 @@ static constexpr bool INVERT_LS_Y = true; // 前後が反転しているので Y を反転
 using namespace DirectX;
 
 // プレイヤークラス実装
+Player::~Player() = default;
+
 Player::Player()
+	: GameObject(DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f))
+	, model_(nullptr)
+	, electricModel_(nullptr)
+	, direction_(0.0f, 0.0f, 1.0f)
+	, health_(100.0f)
+	, maxHealth_(100.0f)
+	, usePlayer(true)
 {
 }
 
-Player::~Player() = default;
-
 Player::Player(const XMFLOAT3& pos)
-	: position_(pos)
+	: GameObject(pos)
 {
 }
 
 
 Player::Player(MODEL* model, MODEL* electricModel, const XMFLOAT3& pos, const XMFLOAT3& dir)
-	: model_(model), electricModel_(electricModel), position_(pos), direction_(dir)
+	: GameObject(pos, model)
+	, model_(model)
+	, electricModel_(electricModel)
+	, direction_(dir)
 {
-	//体力
 	health_ = maxHealth_ = 100.0f;	
 	usePlayer = true;
 
@@ -126,17 +135,17 @@ void Player::Update(double elapsedSec)
 		{
 			usePlayer = false;
 		}
-		//リスポーン
+		//リスポーン処理
 		if (usePlayer == false)
 		{
 			health_ = maxHealth_;
-			position_ = XMFLOAT3(0.0f, 15.0f, 0.0f);
+			m_Position = XMFLOAT3(0.0f, 15.0f, 0.0f);
 			usePlayer = true;
 			
 			// 状態をHUMANにリセット
 			ChangeState(State::HUMAN);
 			
-			// 移動速度をリセット
+			// 移動速度を設定
 			currentSpeed_ = baseSpeed_;
 			
 			// ダッシュ状態をリセット
@@ -157,24 +166,24 @@ void Player::Update(double elapsedSec)
 		velocityY_ -= GRAVITY * static_cast<float>(elapsedSec);
 	}
 
-	// 3. 移動と衝突処理
+	// 3. 移動と衝突判定
 	XMFLOAT3 desiredMove = {
 		horizontalMove.x * currentSpeed_ * static_cast<float>(elapsedSec),
 		velocityY_ * static_cast<float>(elapsedSec),
 		horizontalMove.z * currentSpeed_ * static_cast<float>(elapsedSec)
 	};
 	
-	// 電気状態の場合は衝突判定をスキップして直接移動
+	// 電気状態の場合は衝突判定をスキップして直進
 	if (state == State::ELECTRICITY) {
-		position_.x += desiredMove.x;
-		position_.z += desiredMove.z;
+		m_Position.x += desiredMove.x;
+		m_Position.z += desiredMove.z;
 		velocityY_ = 0.0f;
 		isGrounded_ = true;
 	} else if (skipCollisionTimer_ > 0.0f) {
-		// 状態変更直後はスキップタイマーがある間、衝突判定をスキップ
-		position_.x += desiredMove.x;
-		position_.z += desiredMove.z;
-		position_.y += desiredMove.y;
+		// 状態変化直後のスキップタイマー期間、衝突判定をスキップ
+		m_Position.x += desiredMove.x;
+		m_Position.z += desiredMove.z;
+		m_Position.y += desiredMove.y;
 	} else {
 		// HUMAN状態は通常の衝突判定を適用
 		ResolveCollisions(desiredMove, elapsedSec);
@@ -195,7 +204,7 @@ void Player::Update(double elapsedSec)
 void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec)
 {
     // XZ平面（水平）の移動と衝突判定
-    XMFLOAT3 newPos = position_;
+    XMFLOAT3 newPos = m_Position;
     newPos.x += desiredMove.x;
     newPos.z += desiredMove.z;
 
@@ -204,8 +213,12 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
 
     extern ObjectManager g_ObjectManager;
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
-        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        // HUMAN状態の際、PowerLineとの衝突をスキップ
         if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        // プレイヤー自身は衝突判定から除外
+        if (obj->GetTag() == GameObjectTag::PLAYER) {
             continue;
         }
         
@@ -216,28 +229,32 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
     }
 
     if (!collisionXZ) {
-        position_ = newPos; // 衝突なしなら移動を適用
+        m_Position = newPos; // 衝突なければ移動を適用
     }
 
-    // Y軸（鉛直）の移動と衝突判定
-    position_.y += desiredMove.y;
+    // Y軸（垂直）の移動と衝突判定
+    m_Position.y += desiredMove.y;
     playerAABB = GetAABB(); // 更新されたXZ位置でAABBを再計算
     bool collisionY = false;
 
     for (const auto& obj : g_ObjectManager.GetGameObjects()) {
-        // HUMAN状態の時、PowerLineとの衝突をスキップ
+        // HUMAN状態の際、PowerLineとの衝突をスキップ
         if (state == State::HUMAN && obj->GetTag() == GameObjectTag::POWER_LINE) {
+            continue;
+        }
+        // プレイヤー自身は衝突判定から除外
+        if (obj->GetTag() == GameObjectTag::PLAYER) {
             continue;
         }
         
         if (playerAABB.IsOverlap(obj->GetAABB())) {
-            // オブジェクトの下にいるか、上にいるかで処理を分ける
-            if (desiredMove.y < 0.0f) { // 下降中
-                position_.y = obj->GetAABB().GetMax().y; // オブジェクトの上面にスナップ
+            // オブジェクトの上にあるか、下にあるかで分ける
+            if (desiredMove.y < 0.0f) { // 落下時
+                m_Position.y = obj->GetAABB().GetMax().y; // オブジェクトの上面にスナップ
                 velocityY_ = 0.0f;
                 isGrounded_ = true;
-            } else if (desiredMove.y > 0.0f) { // 上昇中
-                position_.y = obj->GetAABB().GetMin().y - aabbHalfSize.y * 2.0f; // オブジェクトの底面にスナップ
+            } else if (desiredMove.y > 0.0f) { // 上昇時
+                m_Position.y = obj->GetAABB().GetMin().y - aabbHalfSize.y * 2.0f; // オブジェクトの下面にスナップ
                 velocityY_ = 0.0f;
             }
             collisionY = true;
@@ -246,8 +263,8 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
     }
 
     // 地面との最終チェック
-    if (position_.y <= GROUND_LEVEL) {
-        position_.y = GROUND_LEVEL;
+    if (m_Position.y <= GROUND_LEVEL) {
+        m_Position.y = GROUND_LEVEL;
         velocityY_ = 0.0f;
         isGrounded_ = true;
     } else if (!collisionY) {
@@ -255,25 +272,25 @@ void Player::ResolveCollisions(DirectX::XMFLOAT3& desiredMove, double elapsedSec
     }
 }
 
-// 指定した位置でのAABBを計算するヘルパー
+// 指定した位置でのAABBを計算する補助関数
 AABB Player::GetAABBAt(const DirectX::XMFLOAT3& pos) const
 {
     float halfW = aabbHalfSize.x;
-    float height = aabbHalfSize.y * 2.0f; // AABBの高さは全体
+    float height = aabbHalfSize.y * 2.0f; // AABBの高さは全て
     DirectX::XMFLOAT3 min{ pos.x - halfW, pos.y - 0.5f, pos.z - halfW };
     DirectX::XMFLOAT3 max{ pos.x + halfW, pos.y + height, pos.z + halfW };
     return AABB(min, max);
 }
 
-// モデル描画（状態に応じてモデル切替）
-void Player::Draw()
+// プレイヤー描画（状態に応じてモデルを選択）
+void Player::Draw() const
 {
 	MODEL* drawModel = (state == State::ELECTRICITY && electricModel_) ? electricModel_ : model_;
 	if (!drawModel) return;
-	// 回転はY軸のみを考慮して簡易的に作成
+	// 回転とY軸のみ向きの値で作成
 	float yaw = atan2f(direction_.x, direction_.z);
 	XMMATRIX matRot = XMMatrixRotationY(yaw);
-	XMMATRIX matTrans = XMMatrixTranslation(position_.x, position_.y, position_.z);
+	XMMATRIX matTrans = XMMatrixTranslation(m_Position.x, m_Position.y, m_Position.z);
 	XMMATRIX world = matRot * matTrans;
 
 	ModelDraw(drawModel, world);
@@ -301,7 +318,7 @@ void Player::StopDash()
 
 void Player::Jump(float jumpForce)
 {
-	// 地面に接している場合のみジャンプ可能
+	// 地面に接しているい場合のみジャンプ可能
 	if (isGrounded_) {
 		velocityY_ = jumpForce;
 		isGrounded_ = false;
@@ -314,7 +331,7 @@ void Player::TakeDamage(float amount)
 	if (health_ < 0.0f) health_ = 0.0f;
 	
 	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
-	//DEBUG_LOGF("[TakeDamage] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Damage=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
+	//DEBUG_LOGF("[TakeDamage] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Damage=%.2f", stateName, m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_, amount);
 }
 
 void Player::Heal(float amount)
@@ -323,7 +340,7 @@ void Player::Heal(float amount)
 	if (health_ > maxHealth_) health_ = maxHealth_;
 	
 	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
-	//DEBUG_LOGF("[Heal] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Healed=%.2f", stateName, position_.x, position_.y, position_.z, health_, maxHealth_, amount);
+	//DEBUG_LOGF("[Heal] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | Healed=%.2f", stateName, m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_, amount);
 }
 
 void Player::SetController(Controller* controller)
@@ -352,8 +369,8 @@ AABB Player::GetAABB() const
 {
 	float halfW = aabbHalfSize.x;
 	float height = aabbHalfSize.y;
-	DirectX::XMFLOAT3 min{ position_.x - halfW, position_.y, position_.z - halfW };
-	DirectX::XMFLOAT3 max{ position_.x + halfW, position_.y + height, position_.z + halfW };
+	DirectX::XMFLOAT3 min{ m_Position.x - halfW, m_Position.y, m_Position.z - halfW };
+	DirectX::XMFLOAT3 max{ m_Position.x + halfW, m_Position.y + height, m_Position.z + halfW };
 	return AABB(min, max);
 }
 
@@ -369,9 +386,9 @@ bool Player::IsNearPole() const
 			if (!pole) continue;
 			
 			DirectX::XMFLOAT3 polePos = pole->GetPosition();
-			float dx = polePos.x - position_.x;
-			float dz = polePos.z - position_.z;
-			// 水平距離のみで判定（高さは無視）
+			float dx = polePos.x - m_Position.x;
+			float dz = polePos.z - m_Position.z;
+			// 水平距離のみで判定（垂直は無視）
 			float horizontalDistance = sqrtf(dx*dx + dz*dz);
 			
 			if (horizontalDistance <= POLE_DETECTION_RADIUS) {
@@ -390,7 +407,7 @@ void Player::SnapToNearestPowerLine()
 	extern ObjectManager g_ObjectManager;
 
 	float minDistance = FLT_MAX;
-	DirectX::XMFLOAT3 snappedPos = position_;
+	DirectX::XMFLOAT3 snappedPos = m_Position;
 	bool found = false;
 
 	// すべての電線の中から最も近いポイントを探す
@@ -401,11 +418,11 @@ void Player::SnapToNearestPowerLine()
 			if (!line) continue;
 
 			// 電線上の最も近いポイントを取得
-			DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(position_);
+			DirectX::XMFLOAT3 closestPoint = line->GetClosestPointOnLine(m_Position);
 			
-			float dx = closestPoint.x - position_.x;
-			float dy = closestPoint.y - position_.y;
-			float dz = closestPoint.z - position_.z;
+			float dx = closestPoint.x - m_Position.x;
+			float dy = closestPoint.y - m_Position.y;
+			float dz = closestPoint.z - m_Position.z;
 			
 			// 水平距離と垂直距離を分別
 			float horizontalDist = sqrtf(dx * dx + dz * dz);
@@ -428,13 +445,13 @@ void Player::SnapToNearestPowerLine()
 
 	// 最も近い電線にスナップ
 	if (found) {
-		position_ = snappedPos;
+		m_Position = snappedPos;
 		isGrounded_ = true;
 		velocityY_ = 0.0f;
 	}
 }
 
-// 電気状態から人間に変化する際に電柱から跳ね返す
+// 電気状態から人間状態に変化する際に電柱から跳ね返す
 void Player::KnockbackFromPole()
 {
 	extern ObjectManager g_ObjectManager;
@@ -449,8 +466,8 @@ void Player::KnockbackFromPole()
 			if (!pole) continue;
 
 			DirectX::XMFLOAT3 polePos = pole->GetPosition();
-			float dx = polePos.x - position_.x;
-			float dz = polePos.z - position_.z;
+			float dx = polePos.x - m_Position.x;
+			float dz = polePos.z - m_Position.z;
 			float horizontalDistance = sqrtf(dx * dx + dz * dz);
 
 			if (horizontalDistance < minDistance) {
@@ -462,10 +479,10 @@ void Player::KnockbackFromPole()
 
 	if (!nearestPole) return;
 
-	// 最も近い電柱からプレイヤーに向かう方向を計算
+	// 最も近い電柱からプレイヤーへの方向ベクトルを計算
 	DirectX::XMFLOAT3 nearestPolePos = nearestPole->GetPosition();
-	float knockbackDx = position_.x - nearestPolePos.x;
-	float knockbackDz = position_.z - nearestPolePos.z;
+	float knockbackDx = m_Position.x - nearestPolePos.x;
+	float knockbackDz = m_Position.z - nearestPolePos.z;
 	float knockbackDist = sqrtf(knockbackDx * knockbackDx + knockbackDz * knockbackDz);
 
 	if (knockbackDist > 0.001f) {
@@ -473,11 +490,11 @@ void Player::KnockbackFromPole()
 		knockbackDx /= knockbackDist;
 		knockbackDz /= knockbackDist;
 
-		// 電柱から確実に離す（KNOCKBACK_DISTANCE = 3.0f）
-		position_.x = nearestPolePos.x + knockbackDx * KNOCKBACK_DISTANCE;
-		position_.z = nearestPolePos.z + knockbackDz * KNOCKBACK_DISTANCE;
+		// 電柱から確定に跳ね返す（KNOCKBACK_DISTANCE = 3.0f）
+		m_Position.x = nearestPolePos.x + knockbackDx * KNOCKBACK_DISTANCE;
+		m_Position.z = nearestPolePos.z + knockbackDz * KNOCKBACK_DISTANCE;
 
-		// 真上にジャンプ（水平方向の移動なし）
+		// 同時にジャンプ（水平方向の移動なし）
 		velocityY_ = KNOCKBACK_JUMP_FORCE;
 		isGrounded_ = false;
 	}
@@ -513,14 +530,15 @@ void Player::ChangeState(Player::State newState)
 	if (newState == State::HUMAN) {
 		powerLineDamageTimer_ = 0.0f;
 		DEBUG_LOGF("[ChangeState] HUMAN | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
-			position_.x, position_.y, position_.z, health_, maxHealth_);
+			m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_);
 	} else if (newState == State::ELECTRICITY) {
 		DEBUG_LOGF("[ChangeState] ELECTRICITY | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
-			position_.x, position_.y, position_.z, health_, maxHealth_);
+			m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_);
 	}
 }
 
 // ハウスへの電気供給（ボタン操作で呼ばれる）
+// プレイヤーが近くにいるハウスに電気を供給する関数
 void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 {
 	if (!house || health_ <= 0) return;
@@ -539,6 +557,7 @@ void Player::TransferElectricityToHouse(House* house, double elapsedSec)
 	house->ReceiveElectricity(transferAmount);
 	
 	// プレイヤーの体力から差し引く（電気を消費）
+// 体力を減少させて電気を供給
 	TakeDamage(transferAmount);
 	
 }
@@ -557,7 +576,7 @@ class House* Player::GetNearestHouse() const
 			House* house = static_cast<House*>(obj.get());
 			if (!house) continue;
 			
-			float distance = house->GetDistanceToPlayer(position_);
+			float distance = house->GetDistanceToPlayer(m_Position);
 			
 			if (distance < minDistance && distance <= HOUSE_INTERACTION_RADIUS) {
 				minDistance = distance;
@@ -568,7 +587,7 @@ class House* Player::GetNearestHouse() const
 	return nearestHouse;
 }
 
-// 供給開始
+// 給電開始
 void Player::StartSupplyingElectricity(House* house)
 {
 	if (!house || m_isSupplying) return;
@@ -577,11 +596,11 @@ void Player::StartSupplyingElectricity(House* house)
 
 	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
 	DEBUG_LOGF("[StartSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f | House=(%.1f, %.1f, %.1f)", 
-		stateName, position_.x, position_.y, position_.z, health_, maxHealth_,
+		stateName, m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_,
 		house->GetPosition().x, house->GetPosition().y, house->GetPosition().z);
 }
 
-// 供給停止
+// 給電停止
 void Player::StopSupplyingElectricity()
 {
 	m_isSupplying = false;
@@ -589,5 +608,5 @@ void Player::StopSupplyingElectricity()
 
 	const char* stateName = (state == State::ELECTRICITY) ? "ELECTRICITY" : "HUMAN";
 	DEBUG_LOGF("[StopSupply] State=%s | Pos=(%.1f, %.1f, %.1f) | HP=%.1f/%.1f", 
-		stateName, position_.x, position_.y, position_.z, health_, maxHealth_);
+		stateName, m_Position.x, m_Position.y, m_Position.z, health_, maxHealth_);
 }
